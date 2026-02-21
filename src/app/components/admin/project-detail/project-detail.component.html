@@ -1,0 +1,94 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <a routerLink="/admin/projects" class="text-blue-400 hover:text-blue-500 mb-2 inline-block">
+        ← Voltar para Projetos
+      </a>
+      @if (project()) {
+        <h1 class="text-3xl font-bold text-gray-800">{{ project()!.name }}</h1>
+      }
+    </div>
+    @if (project()) {
+      <a
+        [routerLink]="['/admin/requirements']"
+        [queryParams]="{ projectId: project()!.id, create: 'true' }"
+        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+      >
+        + Criar Requisito
+      </a>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-12">
+      <svg class="animate-spin h-12 w-12 text-blue-400 mx-auto" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+  } @else {
+    @if (project()) {
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        @if (project()!.description) {
+          <div class="mb-4">
+            <label class="text-sm font-medium text-gray-600">Descrição</label>
+            <p class="text-gray-800 mt-1">{{ project()!.description }}</p>
+          </div>
+        }
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-600">Criado em</label>
+            <p class="text-gray-800">{{ project()!.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-600">Atualizado em</label>
+            <p class="text-gray-800">{{ project()!.updatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-gray-800">Requisitos do Projeto</h2>
+          @if (project()) {
+            <a
+              [routerLink]="['/admin/requirements']"
+              [queryParams]="{ projectId: project()!.id, create: 'true' }"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              + Novo Requisito
+            </a>
+          }
+        </div>
+        <div class="p-6">
+          @if (requirements().length === 0) {
+            <p class="text-gray-500 text-center py-8">Nenhum requisito encontrado para este projeto</p>
+          } @else {
+            <div class="space-y-4">
+              @for (req of requirements(); track req.uuid) {
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-semibold text-gray-800">{{ req.requirementId }}</h3>
+                  </div>
+                  <p class="text-gray-700">{{ req.refinedRequirement }}</p>
+                  <a
+                    [routerLink]="['/admin/requirements']"
+                    class="text-blue-400 hover:text-blue-500 text-sm mt-2 inline-block"
+                  >
+                    Ver detalhes →
+                  </a>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

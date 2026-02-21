@@ -1,0 +1,676 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-800">Gestão de Requisitos</h1>
+    <div class="flex gap-3">
+      <button
+        (click)="openReportModal()"
+        [disabled]="!selectedProjectId() || selectedProjectId() === 'all'"
+        class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Relatório
+      </button>
+      <button
+        (click)="openCreateModal()"
+        [disabled]="!selectedProjectId() || selectedProjectId() === 'all'"
+        class="px-6 py-3 bg-blue-400 hover:bg-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-md transition-colors"
+      >
+        + Novo Requisito
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Projeto *</label>
+      <select
+        [ngModel]="selectedProjectId()"
+        (ngModelChange)="selectedProjectId.set($event)"
+        (change)="onFilterChange()"
+        class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
+      >
+        <option value="">Selecione um projeto</option>
+        @for (project of projects(); track project.id) {
+          <option [value]="project.id">{{ project.name }}</option>
+        }
+      </select>
+      <p class="text-xs text-gray-500 mt-1">Selecione um projeto para visualizar seus requisitos</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  @if (loading() && requirements().length === 0) {
+    <div class="text-center py-12">
+      <svg class="animate-spin h-12 w-12 text-blue-400 mx-auto" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="mt-4 text-gray-600">Carregando requisitos...</p>
+    </div>
+  } @else {
+    @if (!selectedProjectId() || selectedProjectId() === 'all') {
+      <div class="bg-white rounded-lg shadow p-12 text-center">
+        <svg class="w-16 h-16 text-blue-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="text-gray-500 text-lg mb-2">Selecione um projeto para visualizar os requisitos</p>
+        <p class="text-gray-400 text-sm">Os requisitos são organizados por projeto</p>
+      </div>
+    } @else if (requirements().length === 0) {
+      <div class="bg-white rounded-lg shadow p-12 text-center">
+        <svg class="w-16 h-16 text-blue-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="text-gray-500 text-lg">Nenhum requisito encontrado para este projeto</p>
+        <button
+          (click)="openCreateModal()"
+          class="mt-4 px-6 py-2 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors"
+        >
+          + Criar Primeiro Requisito
+        </button>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (req of requirements(); track req.uuid) {
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-lg font-semibold text-gray-800">{{ req.requirementId }}</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Projeto: {{ req.requirementSetName }}</p>
+                <p class="text-gray-700 mb-4 break-words whitespace-pre-wrap">{{ req.refinedRequirement }}</p>
+                @if (req.analise) {
+                  <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <p class="text-sm font-medium text-blue-600 mb-1">Análise:</p>
+                    <p class="text-sm text-blue-700 break-words whitespace-pre-wrap">{{ req.analise }}</p>
+                  </div>
+                }
+                <p class="text-xs text-gray-500 mt-4">
+                  Criado em: {{ req.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                </p>
+              </div>
+              <div class="flex flex-col gap-2 ml-4">
+                <button
+                  (click)="openDetailModal(req)"
+                  class="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                >
+                  Detalhes
+                </button>
+                <button
+                  (click)="openEditModal(req)"
+                  class="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+                >
+                  Editar
+                </button>
+                <button
+                  (click)="openHistoryModal(req)"
+                  class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                >
+                  Histórico
+                </button>
+                <button
+                  (click)="openDeleteModal(req)"
+                  class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                >
+                  Deletar
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Modal Confirmar Deletar Requisito -->
+  @if (showDeleteModal() && actionTarget()) {
+    <app-confirm-modal
+      title="Excluir Requisito"
+      [message]="getDeleteConfirmMessage()"
+      confirmLabel="Excluir"
+      cancelLabel="Cancelar"
+      variant="danger"
+      backdropClass="bg-black/50 backdrop-blur-sm"
+      (confirm)="confirmDeleteRequirement()"
+      (cancel)="closeDeleteModal()"
+    />
+  }
+
+  <!-- Modal Criar Requisito - Blur para manter menu visível -->
+  @if (showCreateModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 overflow-auto">
+      <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800">Criar Novo Requisito</h2>
+              <p class="text-sm text-gray-600 mt-1">A IA irá processar e refinar seu requisito automaticamente</p>
+            </div>
+            <button
+              (click)="closeCreateModal()"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 flex overflow-hidden">
+          <!-- Left: Chat Interface (só quando não tem resultado) -->
+          @if (!aiResponse()) {
+          <div class="flex-1 flex flex-col border-r border-gray-200 bg-gray-50">
+            <div class="p-6 flex-1 overflow-y-auto">
+              <!-- Chat Messages -->
+              <div class="space-y-4">
+                <!-- AI Welcome Message -->
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1 bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                    <p class="text-gray-700">Olá! Descreva seu requisito em linguagem natural e eu vou processá-lo e refiná-lo para você.</p>
+                  </div>
+                </div>
+
+                <!-- User Input Area -->
+                @if (!processingAI() && !aiResponse()) {
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Projeto
+                        </label>
+                        <select
+                          [ngModel]="selectedProjectId()"
+        (ngModelChange)="selectedProjectId.set($event)"
+                          disabled
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                        >
+                          @for (project of projects(); track project.id) {
+                            @if (project.id === selectedProjectId()) {
+                              <option [value]="project.id">{{ project.name }}</option>
+                            }
+                          }
+                        </select>
+                      </div>
+                      <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <textarea
+                          [ngModel]="rawRequirement()"
+                        (ngModelChange)="rawRequirement.set($event)"
+                          rows="4"
+                          placeholder="Ex: Preciso de uma tela para cadastrar usuários com validação de email..."
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none"
+                        ></textarea>
+                        <div class="mt-3 flex justify-end">
+                          <button
+                            (click)="createRequirement()"
+                            [disabled]="!rawRequirement().trim()"
+                            class="px-6 py-2 bg-blue-400 hover:bg-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-2"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            Processar com IA
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- AI Processing -->
+                @if (processingAI()) {
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0 animate-pulse">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1 bg-blue-50 rounded-lg p-4 shadow-sm border border-blue-200">
+                      <div class="flex items-center gap-2 text-blue-600">
+                        <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="font-medium">Processando com IA...</p>
+                      </div>
+                      <p class="text-sm text-blue-700 mt-2">Analisando seu requisito e gerando uma versão refinada...</p>
+                    </div>
+                  </div>
+                }
+
+                <!-- Error Message -->
+                @if (error()) {
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-400 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1 bg-red-50 rounded-lg p-4 shadow-sm border border-red-200">
+                      <p class="text-red-700">{{ error() }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          }
+
+          <!-- Right: Preview (ocupa toda a largura quando há resultado) -->
+          <div class="flex-1 flex flex-col bg-white min-w-0">
+            @if (!aiResponse()) {
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-800">Preview do Resultado</h3>
+              <p class="text-sm text-gray-600 mt-1">Visualize como a IA processou seu requisito</p>
+            </div>
+            }
+            <div class="flex-1 overflow-y-auto p-6">
+              @if (!processingAI() && !aiResponse()) {
+                <div class="text-center py-12">
+                  <svg class="w-16 h-16 text-blue-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <p class="text-gray-400">O resultado aparecerá aqui após o processamento</p>
+                </div>
+              } @else if (processingAI()) {
+                <div class="space-y-4">
+                  <div class="animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                    <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                  </div>
+                </div>
+              } @else if (aiResponse()) {
+                @if (aiResponse(); as req) {
+                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 flex-1">
+                    <!-- Esquerda: Original -->
+                    <div class="flex flex-col min-h-0">
+                      <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold text-gray-800">Prompt original</h4>
+                        <button
+                          type="button"
+                          (click)="useRefinedVersion.set(false)"
+                          [class.ring-2]="!useRefinedVersion()"
+                          [class.ring-blue-500]="!useRefinedVersion()"
+                          class="px-3 py-1.5 text-sm font-medium rounded-lg transition-all"
+                          [ngClass]="!useRefinedVersion() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'"
+                        >
+                          Usar este
+                        </button>
+                      </div>
+                      <textarea
+                        [ngModel]="rawRequirement()"
+                        (ngModelChange)="rawRequirement.set($event)"
+                        rows="12"
+                        class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 resize-none min-h-[200px]"
+                        placeholder="Prompt usado para gerar o requisito"
+                      ></textarea>
+                    </div>
+
+                    <!-- Centro: Refinado -->
+                    <div class="flex flex-col min-h-0">
+                      <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold text-gray-800">Requisito refinado (editável)</h4>
+                        <button
+                          type="button"
+                          (click)="useRefinedVersion.set(true)"
+                          [class.ring-2]="useRefinedVersion()"
+                          [class.ring-blue-500]="useRefinedVersion()"
+                          class="px-3 py-1.5 text-sm font-medium rounded-lg transition-all"
+                          [ngClass]="useRefinedVersion() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'"
+                        >
+                          Usar este
+                        </button>
+                      </div>
+                      <textarea
+                        [ngModel]="editableRefinedRequirement()"
+                        (ngModelChange)="editableRefinedRequirement.set($event)"
+                        rows="12"
+                        class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 resize-none min-h-[200px]"
+                        placeholder="Versão refinada pelo IA"
+                      ></textarea>
+                    </div>
+
+                    <!-- Direita: Análise -->
+                    <div class="flex flex-col min-h-0 overflow-y-auto">
+                      <h4 class="text-sm font-semibold text-gray-800 mb-2">Análise</h4>
+                      <p class="text-xs text-gray-500 mb-2">Pontos negativos: ambiguidade, duplicidade, falta de contexto</p>
+                      @if ((req.ambiguityWarnings && req.ambiguityWarnings.length > 0) || req.analise) {
+                        <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 flex-1">
+                          @if (req.analise) {
+                            <p class="text-sm text-amber-800 whitespace-pre-wrap mb-3">{{ req.analise }}</p>
+                          }
+                          @if (req.ambiguityWarnings && req.ambiguityWarnings.length > 0) {
+                            <ul class="list-disc list-inside text-sm text-amber-700 space-y-2">
+                              @for (w of req.ambiguityWarnings; track $index) {
+                                <li class="break-words">{{ w }}</li>
+                              }
+                            </ul>
+                          }
+                        </div>
+                      } @else {
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-500">
+                          Nenhum ponto negativo identificado.
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+            @if (aiResponse()) {
+            <div class="p-6 border-t border-gray-200 bg-gray-50 flex gap-3 shrink-0">
+              <button
+                (click)="saveRequirement()"
+                        [disabled]="savingRequirement()"
+                        class="flex-1 px-4 py-2 bg-blue-400 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                @if (savingRequirement()) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Salvando...
+                } @else {
+                  Salvar Requisito
+                }
+              </button>
+              <button
+                (click)="refazerRequirement()"
+                [disabled]="processingAI()"
+                class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Refazer
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Editar Requisito - Blur para manter menu visível -->
+  @if (showEditModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 overflow-auto">
+      <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
+        <div class="p-6">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">Editar Requisito</h2>
+          
+          @if (error()) {
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              {{ error() }}
+            </div>
+          }
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Prompt original *</label>
+            <textarea
+              [ngModel]="editRawRequirement()"
+              (ngModelChange)="editRawRequirement.set($event)"
+              rows="3"
+              placeholder="Prompt original"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Requisito refinado *</label>
+            <textarea
+              [ngModel]="editRefinedRequirement()"
+              (ngModelChange)="editRefinedRequirement.set($event)"
+              rows="5"
+              placeholder="Versão refinada"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Versão a exibir</label>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" [value]="true" [ngModel]="editUseRefinedVersion()" (ngModelChange)="editUseRefinedVersion.set($event)" name="editUseRefined">
+                <span>Usar refinado</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" [value]="false" [ngModel]="editUseRefinedVersion()" (ngModelChange)="editUseRefinedVersion.set($event)" name="editUseRefined">
+                <span>Usar original</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex gap-3 justify-end">
+            <button
+              (click)="closeEditModal()"
+              class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              (click)="updateRequirement()"
+              [disabled]="loading()"
+              class="px-4 py-2 bg-blue-400 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50"
+            >
+              @if (loading()) {
+                <span class="flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processando...
+                </span>
+              } @else {
+                Atualizar
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Detalhes -->
+  @if (showDetailModal() && selectedRequirement()) {
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">Detalhes do Requisito</h2>
+            <button
+              (click)="closeDetailModal()"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          @if (selectedRequirement(); as req) {
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium text-gray-600">ID do Requisito</label>
+                <p class="text-lg font-semibold text-gray-800">{{ req.requirementId }}</p>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-gray-600">Projeto</label>
+                <p class="text-gray-800">{{ req.requirementSetName }}</p>
+              </div>
+              @if (req.rawRequirement) {
+                <div>
+                  <label class="text-sm font-medium text-gray-600">Prompt original</label>
+                  <p class="text-gray-800 mt-1 break-words whitespace-pre-wrap">{{ req.rawRequirement }}</p>
+                </div>
+              }
+              <div>
+                <label class="text-sm font-medium text-gray-600">Requisito refinado</label>
+                <p class="text-gray-800 mt-1 break-words whitespace-pre-wrap">{{ req.refinedRequirement }}</p>
+              </div>
+              @if ((req.ambiguityWarnings && req.ambiguityWarnings.length > 0) || req.analise) {
+                <div class="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <label class="text-sm font-medium text-amber-800">Análise</label>
+                  <p class="text-xs text-amber-600 mt-1 mb-2">Pontos negativos: ambiguidade, duplicidade, falta de contexto</p>
+                  @if (req.analise) {
+                    <p class="text-sm text-amber-800 whitespace-pre-wrap break-words mb-2">{{ req.analise }}</p>
+                  }
+                  @if (req.ambiguityWarnings && req.ambiguityWarnings.length > 0) {
+                    <ul class="list-disc list-inside text-sm text-amber-700 space-y-1">
+                      @for (w of req.ambiguityWarnings; track $index) {
+                        <li class="break-words">{{ w }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              }
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-medium text-gray-600">Criado em</label>
+                  <p class="text-gray-800">{{ req.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-gray-600">Atualizado em</label>
+                  <p class="text-gray-800">{{ req.updatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Histórico -->
+  @if (showHistoryModal() && selectedRequirement()) {
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">Histórico de Alterações</h2>
+            <button
+              (click)="closeHistoryModal()"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <p class="text-gray-500">Funcionalidade de histórico será implementada</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Relatório Geral -->
+  @if (showReportModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 overflow-auto">
+      <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-gray-800">Relatório de Requisitos</h2>
+          <button (click)="closeReportModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6">
+          @if (reportLoading()) {
+            <div class="flex items-center justify-center py-12">
+              <svg class="animate-spin h-10 w-10 text-blue-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          } @else if (report()) {
+            @let r = report()!;
+            <div class="space-y-6">
+              @if (!r.requirementsWithProblems || r.requirementsWithProblems.length === 0) {
+                <div class="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                  <p class="text-gray-700 font-medium">Nenhum problema encontrado nos requisitos deste projeto.</p>
+                </div>
+              } @else {
+                <p class="text-sm text-gray-600 mb-4">Projeto: {{ r.requirementSetName }}</p>
+                @for (item of r.requirementsWithProblems; track item.requirementId) {
+                  <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                      <p class="font-semibold text-gray-800">{{ item.requirementIdStr }}</p>
+                      <p class="text-sm text-gray-600 mt-1 break-words">{{ item.refinedRequirement }}</p>
+                    </div>
+                    <div class="p-4 space-y-4">
+                      @if (item.problems && item.problems.length > 0) {
+                        <div>
+                          <h4 class="text-sm font-medium text-gray-800 mb-2">Problemas</h4>
+                          <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            @for (p of item.problems; track $index) {
+                              <li class="break-words">{{ p }}</li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                      @if (item.ambiguityWarnings && item.ambiguityWarnings.length > 0) {
+                        <div>
+                          <h4 class="text-sm font-medium text-gray-800 mb-2">Ambiguidades</h4>
+                          <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            @for (w of item.ambiguityWarnings; track $index) {
+                              <li class="break-words">{{ w }}</li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                      @if (item.conflicts && item.conflicts.length > 0) {
+                        <div>
+                          <h4 class="text-sm font-medium text-red-800 mb-2">Conflitos</h4>
+                          <div class="space-y-2">
+                            @for (c of item.conflicts; track c.conflictingRequirementId) {
+                              <div class="p-3 bg-red-50 rounded border border-red-200">
+                                <p class="text-sm font-medium text-red-800">Conflita com {{ c.conflictingRequirementIdStr }} ({{ (c.similarityScore * 100) | number:'1.0-0' }}% similar)</p>
+                                <p class="text-sm text-red-700 mt-1 break-words">{{ c.suggestion }}</p>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                      @if (item.resolutionSuggestions && item.resolutionSuggestions.length > 0) {
+                        <div>
+                          <h4 class="text-sm font-medium text-gray-800 mb-2">Sugestões de resolução</h4>
+                          <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            @for (s of item.resolutionSuggestions; track $index) {
+                              <li class="break-words">{{ s }}</li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,210 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-300">
+    <div class="px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <!-- Menu Sandwich -->
+        <button
+          (click)="toggleMenu()"
+          class="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          [attr.aria-label]="'Menu'"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Requirements Assistant AI</h1>
+          <p class="text-sm text-gray-600">Chatbot educacional</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        @if (requirementSetName()) {
+          <span class="text-sm text-gray-600">Projeto: {{ requirementSetName() }}</span>
+        }
+        <button
+          (click)="toggleRequirementsModal()"
+          class="relative p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors"
+          [attr.aria-label]="'Requisitos'"
+          [title]="'Requisitos'"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          @if (approvedRequirements().length > 0) {
+            <span class="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-medium text-white">
+              {{ approvedRequirements().length }}
+            </span>
+          }
+        </button>
+        <button
+          (click)="logout()"
+          class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors text-sm"
+        >
+          Sair
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-80px)]">
+    <!-- Sidebar Esquerda: Abas de Chats por Projeto -->
+    <aside 
+      class="w-56 bg-white border-r border-gray-300 p-4 overflow-y-auto transition-all duration-300 flex-shrink-0"
+      [class.hidden]="!showMenu()"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Conversas</h2>
+      </div>
+      <div class="space-y-1">
+        @for (session of sessions(); track session.projectId) {
+          <button
+            (click)="selectSession(session.projectId)"
+            class="w-full text-left px-3 py-2 rounded-lg transition-colors truncate"
+            [class.bg-blue-100]="activeSessionId() === session.projectId"
+            [class.text-blue-800]="activeSessionId() === session.projectId"
+            [class.hover:bg-gray-100]="activeSessionId() !== session.projectId"
+            [class.text-gray-700]="activeSessionId() !== session.projectId"
+            [title]="session.projectName"
+          >
+            {{ truncateProjectName(session.projectName) }}
+          </button>
+        }
+        @if (sessions().length === 0) {
+          <p class="text-gray-500 text-sm">Nenhuma conversa ainda</p>
+        }
+      </div>
+    </aside>
+
+    <!-- Área de Chat (Centro) -->
+    <main class="flex-1 flex flex-col min-w-0">
+      @if (error()) {
+        <div class="p-4 bg-red-50 border-b border-red-200">
+          <p class="text-red-700">{{ error() }}</p>
+        </div>
+      }
+
+      <!-- Mensagens -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        @if (messages().length === 0) {
+          <div class="text-center py-12">
+            <div class="inline-block p-4 bg-gray-100 rounded-full mb-4">
+              <svg class="w-12 h-12 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Bem-vindo ao Chatbot!</h2>
+            <p class="text-gray-600">Faça perguntas sobre os requisitos do projeto.</p>
+          </div>
+        }
+
+        @for (message of messages(); track $index) {
+          <div class="flex" [ngClass]="message.isUser ? 'justify-end' : 'justify-start'">
+            <div
+              class="max-w-2xl rounded-lg p-4"
+              [ngClass]="message.isUser ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 shadow border border-gray-200'"
+            >
+              @if (message.isUser) {
+                <p class="font-medium mb-1">Você</p>
+                <p>{{ message.question }}</p>
+              } @else {
+                <p class="font-medium mb-1 text-gray-700">Chatbot</p>
+                @if (message.answer) {
+                  <p class="whitespace-pre-wrap text-gray-800">{{ message.answer }}</p>
+                } @else {
+                  <div class="flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-gray-600">Pensando...</span>
+                  </div>
+                }
+              }
+              <p class="text-xs mt-2 opacity-70">
+                {{ message.timestamp | date:'HH:mm' }}
+              </p>
+            </div>
+          </div>
+        }
+
+        @if (loading() && messages().length > 0) {
+          <div class="flex justify-start">
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+              <div class="flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-gray-700">Processando...</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Input -->
+      <div class="border-t border-gray-300 bg-white p-4">
+        <form (ngSubmit)="sendMessage()" class="flex gap-3">
+          <input
+            type="text"
+            [(ngModel)]="currentQuestion"
+            name="question"
+            placeholder="Digite sua pergunta..."
+            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            [disabled]="loading() || !canSendMessage()"
+          />
+          <button
+            type="submit"
+            [disabled]="loading() || !currentQuestion().trim() || !canSendMessage()"
+            class="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Enviar
+          </button>
+        </form>
+        @if (!canSendMessage() && activeSessionId()) {
+          <p class="text-xs text-gray-500 mt-2">Apenas o projeto ativo permite enviar mensagens.</p>
+        }
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Requisitos Aprovados -->
+  @if (showRequirementsModal()) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      (click)="closeRequirementsModal()"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Requisitos</h2>
+          <button
+            (click)="closeRequirementsModal()"
+            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4">
+          @if (approvedRequirements().length === 0) {
+            <p class="text-gray-500 text-sm text-center py-8">Nenhum requisito disponível</p>
+          } @else {
+            <div class="space-y-3">
+              @for (req of approvedRequirements(); track req.uuid) {
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100/80 transition-colors">
+                  <h3 class="font-medium text-sm text-gray-900 mb-2">{{ req.requirementId }}</h3>
+                  <p class="text-sm text-gray-700 whitespace-pre-wrap break-words">{{ req.refinedRequirement }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
