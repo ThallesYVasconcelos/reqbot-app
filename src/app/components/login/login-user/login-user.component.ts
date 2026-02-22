@@ -120,6 +120,14 @@ export class LoginUserComponent implements OnInit {
     }
   }
 
+  private getErrorMessage(err: any, role: string): string {
+    const msg = err?.error?.message || err?.error?.error || err?.message || '';
+    if (msg.includes('JPA') || msg.includes('EntityManager') || msg.includes('database') || msg.includes('connection')) {
+      return 'Serviço temporariamente indisponível. O banco de dados está em manutenção. Tente novamente em alguns minutos.';
+    }
+    return msg || `Erro ao fazer login como ${role === 'admin' ? 'admin' : 'usuário'}`;
+  }
+
   triggerGoogleSignIn(): void {
     if (typeof google === 'undefined' || !google.accounts?.id) return;
     try {
@@ -137,7 +145,7 @@ export class LoginUserComponent implements OnInit {
       next: () => this.loading.set(false),
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message || 'Erro ao fazer login como usuário');
+        this.error.set(this.getErrorMessage(err, 'user'));
       }
     });
   }
