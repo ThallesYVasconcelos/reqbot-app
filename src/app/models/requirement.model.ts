@@ -31,12 +31,18 @@ export interface UpdateRequirementRequest {
   useRefinedVersion: boolean;
 }
 
+export type RequirementHistoryActionType = 'CREATED' | 'UPDATED';
+
 export interface RequirementHistory {
   id: string;
+  requirementUuid: string;
   requirementId: string;
-  changeDescription: string;
-  changedAt: string;
-  changedBy: string;
+  rawRequirement?: string;
+  refinedRequirement: string;
+  analise?: string;
+  ambiguityWarnings?: string[];
+  actionType: RequirementHistoryActionType;
+  createdAt: string;
 }
 
 export interface RequirementReportConflict {

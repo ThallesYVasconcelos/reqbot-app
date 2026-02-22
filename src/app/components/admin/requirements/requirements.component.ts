@@ -4,7 +4,7 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RequirementService } from '../../../services/requirement.service';
 import { RequirementSetService } from '../../../services/requirement-set.service';
-import { Requirement, CreateRequirementRequest, UpdateRequirementRequest, SaveRequirementRequest, RequirementReport } from '../../../models/requirement.model';
+import { Requirement, RequirementHistory, CreateRequirementRequest, UpdateRequirementRequest, SaveRequirementRequest, RequirementReport } from '../../../models/requirement.model';
 import { RequirementSet } from '../../../models/requirement-set.model';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal.component';
 
@@ -23,6 +23,8 @@ export class RequirementsComponent implements OnInit {
   showEditModal = signal(false);
   showDetailModal = signal(false);
   showHistoryModal = signal(false);
+  historyItems = signal<RequirementHistory[]>([]);
+  historyLoading = signal(false);
   
   selectedRequirement = signal<Requirement | null>(null);
   selectedProjectId = signal<string>('');
@@ -315,11 +317,28 @@ export class RequirementsComponent implements OnInit {
   openHistoryModal(requirement: Requirement): void {
     this.selectedRequirement.set(requirement);
     this.showHistoryModal.set(true);
+    this.historyLoading.set(true);
+    this.historyItems.set([]);
+    this.requirementService.getHistory(requirement.uuid).subscribe({
+      next: (items) => {
+        this.historyItems.set(items);
+        this.historyLoading.set(false);
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar histórico'));
+        this.historyLoading.set(false);
+      }
+    });
   }
 
   closeHistoryModal(): void {
     this.showHistoryModal.set(false);
     this.selectedRequirement.set(null);
+    this.historyItems.set([]);
+  }
+
+  getHistoryActionLabel(actionType: string): string {
+    return actionType === 'CREATED' ? 'Criado' : 'Atualizado';
   }
 
   onFilterChange(): void {
