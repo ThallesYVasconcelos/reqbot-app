@@ -2,5 +2,5 @@
 export const environment = {
   production: true,
   apiUrl: 'https://requirements-assistant-277624386975.us-central1.run.app', 
-  googleClientId: '1003799692856-v2b9sca51gi9tlilo2m5irpvcvocu8ko.apps.googleusercontent.com'
+  googleClientId: '277624386975-j5ebaom3ts8fuupojvra4v1u49krjlgq.apps.googleusercontent.com'
 };
