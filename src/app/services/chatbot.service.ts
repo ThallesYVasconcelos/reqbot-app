@@ -52,7 +52,7 @@ export class ChatbotService {
   }
 
   getRequirements(): Observable<Requirement[]> {
-    return this.api.get<Requirement[]>('/api/user/chatbot/requirements');
+    return this.api.get<Requirement[]>('/api/user/chatbot/requirements/approved');
   }
 
   getAvailability(): Observable<boolean> {
