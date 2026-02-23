@@ -17,6 +17,10 @@ export class ApiService {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
+    // ngrok free tier: evita página de aviso que bloqueia requisições
+    if (this.baseUrl.includes('ngrok')) {
+      headers = headers.set('ngrok-skip-browser-warning', '69420');
+    }
     if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem('token');
       if (token) {
