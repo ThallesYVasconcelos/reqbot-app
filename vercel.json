@@ -2,15 +2,15 @@
   "version": 2,
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "rewrites": [
+  "rewrites": [{"source": "/(.*)", "destination": "/api"}],
+  "functions": {"api/index.mjs": {"includeFiles": "dist/RequirementsAssistant/**"}},
+  "headers": [
     {
       "source": "/(.*)",
-      "destination": "/api"
+      "headers": [
+        {"key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups"},
+        {"key": "Cross-Origin-Embedder-Policy", "value": "unsafe-none"}
+      ]
     }
-  ],
-  "functions": {
-    "api/index.mjs": {
-      "includeFiles": "dist/RequirementsAssistant/**"
-    }
-  }
+  ]
 }
