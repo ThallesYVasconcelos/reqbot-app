@@ -14,8 +14,14 @@
           </svg>
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Requirements Assistant AI</h1>
-          <p class="text-sm text-gray-600">Chatbot educacional</p>
+          <h1 class="text-2xl font-bold text-gray-900">Reqbot</h1>
+          <p class="text-sm text-gray-600">
+            @if (scheduleText()) {
+              {{ scheduleText() }}
+            } @else {
+              Chatbot educacional
+            }
+          </p>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -25,8 +31,8 @@
         <button
           (click)="toggleRequirementsModal()"
           class="relative p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors"
-          [attr.aria-label]="'Requisitos'"
-          [title]="'Requisitos'"
+          [attr.aria-label]="'Requisitos do projeto'"
+          [title]="'Requisitos do projeto' + (approvedRequirements().length > 0 ? ' (' + approvedRequirements().length + ')' : '')"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -88,12 +94,12 @@
       <div class="flex-1 overflow-y-auto p-6 space-y-4">
         @if (messages().length === 0) {
           <div class="text-center py-12">
-            <div class="inline-block p-4 bg-gray-100 rounded-full mb-4">
-              <svg class="w-12 h-12 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            <div class="inline-block p-4 bg-violet-100 rounded-full mb-4">
+              <svg class="w-12 h-12 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
               </svg>
             </div>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Bem-vindo ao Chatbot!</h2>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Bem-vindo ao Reqbot!</h2>
             <p class="text-gray-600">Faça perguntas sobre os requisitos do projeto.</p>
           </div>
         }
@@ -102,18 +108,23 @@
           <div class="flex" [ngClass]="message.isUser ? 'justify-end' : 'justify-start'">
             <div
               class="max-w-2xl rounded-lg p-4"
-              [ngClass]="message.isUser ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 shadow border border-gray-200'"
+              [ngClass]="message.isUser ? 'bg-blue-800 text-white' : 'bg-violet-50 text-gray-900 shadow border border-violet-100'"
             >
               @if (message.isUser) {
                 <p class="font-medium mb-1">Você</p>
                 <p>{{ message.question }}</p>
               } @else {
-                <p class="font-medium mb-1 text-gray-700">Chatbot</p>
+                <div class="flex items-center gap-2 mb-1">
+                  <svg class="w-4 h-4 text-violet-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                  <p class="font-medium text-violet-800">Reqbot</p>
+                </div>
                 @if (message.answer) {
                   <p class="whitespace-pre-wrap text-gray-800">{{ message.answer }}</p>
                 } @else {
                   <div class="flex items-center gap-2">
-                    <svg class="animate-spin h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -130,13 +141,13 @@
 
         @if (loading() && messages().length > 0) {
           <div class="flex justify-start">
-            <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+            <div class="bg-violet-50 rounded-lg shadow border border-violet-100 p-4">
               <div class="flex items-center gap-2">
-                <svg class="animate-spin h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span class="text-gray-700">Processando...</span>
+                <span class="text-violet-800">Reqbot está processando...</span>
               </div>
             </div>
           </div>
@@ -197,8 +208,8 @@
             <div class="space-y-3">
               @for (req of approvedRequirements(); track req.uuid) {
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100/80 transition-colors">
-                  <h3 class="font-medium text-sm text-gray-900 mb-2">{{ req.requirementId }}</h3>
-                  <p class="text-sm text-gray-700 whitespace-pre-wrap break-words">{{ req.refinedRequirement }}</p>
+                  <h3 class="font-medium text-sm text-gray-900 mb-2 font-mono">{{ req.requirementId }}</h3>
+                  <p class="text-sm text-gray-700 whitespace-pre-wrap break-words font-mono">{{ req.refinedRequirement }}</p>
                 </div>
               }
             </div>

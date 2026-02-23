@@ -42,6 +42,7 @@ export class ChatbotComponent implements OnInit {
   approvedByProject = signal<Record<string, Requirement[]>>({});
   showRequirementsModal = signal(false);
   showMenu = signal(true);
+  scheduleText = signal<string>('');
 
   private platformId = inject(PLATFORM_ID);
 
@@ -125,10 +126,11 @@ export class ChatbotComponent implements OnInit {
         this.ensureSessionExists(set.id, set.name);
         this.activeSessionId.set(set.id);
         this.loadApprovedRequirements();
+        this.loadSchedule();
       },
       error: (err) => {
         if (err.status === 404) {
-          this.error.set('Chatbot não está configurado ou está inativo');
+          this.error.set('Reqbot não está configurado ou está inativo');
           this.isAvailable.set(false);
         } else {
           this.error.set(err.error?.message || 'Erro ao carregar informações do chatbot');
@@ -177,7 +179,7 @@ export class ChatbotComponent implements OnInit {
       next: (available) => {
         this.isAvailable.set(available);
         if (!available) {
-          this.error.set('Desculpe, o chatbot está fora do horário de funcionamento.');
+          this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
         } else {
           // Limpa o erro se estiver disponível
           if (this.error()?.includes('fora do horário')) {
@@ -188,7 +190,7 @@ export class ChatbotComponent implements OnInit {
       error: (err) => {
         this.isAvailable.set(false);
         if (err.status === 404) {
-          this.error.set('Chatbot não está configurado ou está inativo');
+          this.error.set('Reqbot não está configurado ou está inativo');
         }
       }
     });
@@ -207,6 +209,21 @@ export class ChatbotComponent implements OnInit {
     });
   }
 
+  loadSchedule(): void {
+    this.chatbotService.getSchedule().subscribe({
+      next: (s) => {
+        if (s.available24h) {
+          this.scheduleText.set('Disponível 24h');
+        } else if (s.startTime && s.endTime) {
+          this.scheduleText.set('Horário: ' + s.startTime + ' às ' + s.endTime);
+        } else {
+          this.scheduleText.set('');
+        }
+      },
+      error: () => this.scheduleText.set('')
+    });
+  }
+
   canSendMessage(): boolean {
     return this.activeSessionId() === this.activeRequirementSetId();
   }
@@ -221,8 +238,8 @@ export class ChatbotComponent implements OnInit {
     }
 
     // Verifica disponibilidade antes de enviar
-    if (!this.isAvailable()) {
-      this.error.set('Desculpe, o chatbot está fora do horário de funcionamento.');
+        if (!this.isAvailable()) {
+      this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
       return;
     }
 
@@ -246,7 +263,7 @@ export class ChatbotComponent implements OnInit {
         this.isAvailable.set(response.isAvailable ?? true);
 
         if (!response.isAvailable) {
-          this.error.set('Desculpe, o chatbot está fora do horário de funcionamento.');
+          this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
           this.updateSessionMessages(projectId, msgs => msgs.slice(0, -1));
         } else {
           if (!response.answer || response.answer.trim() === '') {
@@ -269,7 +286,7 @@ export class ChatbotComponent implements OnInit {
         this.updateSessionMessages(projectId, msgs => msgs.slice(0, -1));
         
         if (err.status === 400) {
-          this.error.set(err.error?.message || 'Chatbot não está disponível no momento');
+          this.error.set(err.error?.message || 'Reqbot não está disponível no momento');
           this.isAvailable.set(false);
         } else if (err.status === 404) {
           this.error.set('Chatbot não está configurado ou está inativo');

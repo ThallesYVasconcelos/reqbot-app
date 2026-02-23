@@ -55,6 +55,10 @@ export class ChatbotService {
     return this.api.get<Requirement[]>('/api/user/chatbot/requirements/approved');
   }
 
+  getSchedule(): Observable<{ startTime: string | null; endTime: string | null; available24h: boolean }> {
+    return this.api.get<{ startTime: string | null; endTime: string | null; available24h: boolean }>('/api/user/chatbot/schedule');
+  }
+
   getAvailability(): Observable<boolean> {
     return this.api.get<boolean>('/api/user/chatbot/availability');
   }
