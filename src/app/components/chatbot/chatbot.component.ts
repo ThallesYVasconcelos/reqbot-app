@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ChatbotService } from '../../services/chatbot.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatResponse, ChatRequest } from '../../models/chatbot.model';
@@ -25,7 +26,7 @@ const MAX_PROJECT_NAME_LENGTH = 25;
 @Component({
   selector: 'app-chatbot',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './chatbot.component.html',
   styleUrl: './chatbot.component.css'
 })
