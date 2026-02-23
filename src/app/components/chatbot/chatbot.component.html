@@ -3,6 +3,18 @@
   <header class="bg-white shadow-sm border-b border-gray-300">
     <div class="px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
+        @if (authService.isAdmin()) {
+          <a
+            routerLink="/admin/dashboard"
+            class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm"
+            title="Voltar ao painel admin"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Painel Admin
+          </a>
+        }
         <!-- Menu Sandwich -->
         <button
           (click)="toggleMenu()"
@@ -44,15 +56,6 @@
             </span>
           }
         </button>
-        @if (authService.isAdmin()) {
-          <a
-            routerLink="/admin/dashboard"
-            class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
-            title="Voltar ao painel admin"
-          >
-            Painel Admin
-          </a>
-        }
         <button
           (click)="logout()"
           class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors text-sm"
