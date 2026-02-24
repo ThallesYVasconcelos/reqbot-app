@@ -102,17 +102,50 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <input
-            type="checkbox"
-            [(ngModel)]="isActive"
-            name="isActive"
-            id="isActive"
-            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label for="isActive" class="text-sm font-medium text-gray-700">
-            Chatbot Ativo
-          </label>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-200 transition-colors">
+            <div>
+              <p class="font-semibold text-gray-800">Chatbot Ativo</p>
+              <p class="text-sm text-gray-500 mt-0.5">O chatbot fica disponível para os usuários</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              [attr.aria-checked]="isActive()"
+              (click)="isActive.set(!isActive())"
+              class="relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              [class.bg-blue-600]="isActive()"
+              [class.bg-gray-300]="!isActive()"
+            >
+              <span
+                class="pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition-transform"
+                [class.translate-x-6]="isActive()"
+                [class.translate-x-1]="!isActive()"
+              ></span>
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-200 transition-colors">
+            <div>
+              <p class="font-semibold text-gray-800">Exibir requisitos para usuários</p>
+              <p class="text-sm text-gray-500 mt-0.5">Desmarque para sala de aula: usuários não verão o botão de requisitos.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              [attr.aria-checked]="showRequirementsToUsers()"
+              (click)="showRequirementsToUsers.set(!showRequirementsToUsers())"
+              class="relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              [class.bg-blue-600]="showRequirementsToUsers()"
+              [class.bg-gray-300]="!showRequirementsToUsers()"
+            >
+              <span
+                class="pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition-transform"
+                [class.translate-x-6]="showRequirementsToUsers()"
+                [class.translate-x-1]="!showRequirementsToUsers()"
+              ></span>
+            </button>
+          </div>
         </div>
 
         <div class="flex justify-end">

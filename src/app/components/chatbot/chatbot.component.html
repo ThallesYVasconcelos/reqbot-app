@@ -40,22 +40,24 @@
         @if (requirementSetName()) {
           <span class="text-sm text-gray-600">Projeto: {{ requirementSetName() }}</span>
         }
-        <button
-          (click)="toggleRequirementsModal()"
-          class="relative flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors"
-          [attr.aria-label]="'Requisitos do projeto'"
-          [title]="'Requisitos do projeto' + (approvedRequirements().length > 0 ? ' (' + approvedRequirements().length + ')' : '')"
-        >
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-          <span class="text-sm font-medium">Requisitos</span>
-          @if (approvedRequirements().length > 0) {
-            <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
-              {{ approvedRequirements().length }}
-            </span>
-          }
-        </button>
+        @if (canShowRequirements()) {
+          <button
+            (click)="toggleRequirementsModal()"
+            class="relative flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors"
+            [attr.aria-label]="'Requisitos do projeto'"
+            [title]="'Requisitos do projeto' + (approvedRequirements().length > 0 ? ' (' + approvedRequirements().length + ')' : '')"
+          >
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span class="text-sm font-medium">Requisitos</span>
+            @if (approvedRequirements().length > 0) {
+              <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
+                {{ approvedRequirements().length }}
+              </span>
+            }
+          </button>
+        }
         <button
           (click)="logout()"
           class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors text-sm"
@@ -106,14 +108,20 @@
       <!-- Mensagens -->
       <div class="flex-1 overflow-y-auto p-6 space-y-4">
         @if (messages().length === 0) {
-          <div class="text-center py-12">
+          <div class="text-center py-12 max-w-2xl mx-auto">
             <div class="inline-block p-4 bg-violet-100 rounded-full mb-4">
               <svg class="w-12 h-12 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
               </svg>
             </div>
             <h2 class="text-2xl font-semibold text-gray-900 mb-2">Bem-vindo ao Reqbot!</h2>
-            <p class="text-gray-600">Faça perguntas sobre os requisitos do projeto.</p>
+            <p class="text-gray-600 mb-4">Faça perguntas sobre os requisitos do projeto.</p>
+            @if (projectDescription()) {
+              <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-left">
+                <h3 class="text-sm font-semibold text-gray-700 mb-2">Sobre o projeto</h3>
+                <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ projectDescription() }}</p>
+              </div>
+            }
           </div>
         }
 

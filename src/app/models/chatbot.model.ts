@@ -5,10 +5,11 @@ export interface ChatbotConfig {
   requirementSetName: string;
   startTime: string | null;
   endTime: string | null;
+  showRequirementsToUsers?: boolean;
   createdAt: string;
   updatedAt: string;
   availableNow?: boolean;
-  isAvailable?: boolean; 
+  isAvailable?: boolean;
 }
 
 export interface CreateChatbotConfigRequest {
@@ -16,6 +17,7 @@ export interface CreateChatbotConfigRequest {
   startTime?: string | null;
   endTime?: string | null;
   isActive: boolean;
+  showRequirementsToUsers?: boolean;
 }
 
 export interface ChatResponse {

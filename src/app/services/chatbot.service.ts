@@ -47,16 +47,16 @@ export class ChatbotService {
     return this.api.post<ChatResponse>('/api/chatbot/ask', request);
   }
 
-  getRequirementSet(): Observable<{ id: string; name: string }> {
-    return this.api.get<{ id: string; name: string }>('/api/user/chatbot/requirement-set');
+  getRequirementSet(): Observable<{ id: string; name: string; description?: string }> {
+    return this.api.get<{ id: string; name: string; description?: string }>('/api/user/chatbot/requirement-set');
   }
 
   getRequirements(): Observable<Requirement[]> {
     return this.api.get<Requirement[]>('/api/user/chatbot/requirements/approved');
   }
 
-  getSchedule(): Observable<{ startTime: string | null; endTime: string | null; available24h: boolean }> {
-    return this.api.get<{ startTime: string | null; endTime: string | null; available24h: boolean }>('/api/user/chatbot/schedule');
+  getSchedule(): Observable<{ startTime: string | null; endTime: string | null; available24h: boolean; showRequirementsToUsers?: boolean }> {
+    return this.api.get<{ startTime: string | null; endTime: string | null; available24h: boolean; showRequirementsToUsers?: boolean }>('/api/user/chatbot/schedule');
   }
 
   getAvailability(): Observable<boolean> {

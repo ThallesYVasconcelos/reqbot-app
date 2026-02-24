@@ -23,6 +23,7 @@ export class ChatbotConfigComponent implements OnInit {
   startTime = signal<string>('');
   endTime = signal<string>('');
   isActive = signal(true);
+  showRequirementsToUsers = signal(false);
 
   constructor(
     private chatbotService: ChatbotService,
@@ -50,6 +51,7 @@ export class ChatbotConfigComponent implements OnInit {
         this.startTime.set(config.startTime || '');
         this.endTime.set(config.endTime || '');
         this.isActive.set(config.isActive);
+        this.showRequirementsToUsers.set(config.showRequirementsToUsers ?? false);
         this.loading.set(false);
       },
       error: (err) => {
@@ -74,12 +76,19 @@ export class ChatbotConfigComponent implements OnInit {
       requirementSetId: this.selectedProjectId(),
       startTime: this.startTime() || null,
       endTime: this.endTime() || null,
-      isActive: this.isActive()
+      isActive: this.isActive(),
+      showRequirementsToUsers: this.showRequirementsToUsers()
     };
 
     this.chatbotService.createConfig(request).subscribe({
-      next: () => {
-        this.loadActiveConfig();
+      next: (config) => {
+        this.activeConfig.set(config);
+        this.selectedProjectId.set(config.requirementSetId);
+        this.startTime.set(config.startTime || '');
+        this.endTime.set(config.endTime || '');
+        this.isActive.set(config.isActive);
+        this.showRequirementsToUsers.set(config.showRequirementsToUsers ?? false);
+        this.loading.set(false);
         this.error.set(null);
       },
       error: (err) => {

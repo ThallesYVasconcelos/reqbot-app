@@ -44,6 +44,8 @@ export class ChatbotComponent implements OnInit {
   showRequirementsModal = signal(false);
   showMenu = signal(true);
   scheduleText = signal<string>('');
+  showRequirementsToUsers = signal(false);
+  projectDescription = signal<string>('');
 
   private platformId = inject(PLATFORM_ID);
 
@@ -124,6 +126,7 @@ export class ChatbotComponent implements OnInit {
       next: (set) => {
         this.requirementSetName.set(set.name);
         this.activeRequirementSetId.set(set.id);
+        this.projectDescription.set(set.description ?? '');
         this.ensureSessionExists(set.id, set.name);
         this.activeSessionId.set(set.id);
         this.loadApprovedRequirements();
@@ -213,6 +216,7 @@ export class ChatbotComponent implements OnInit {
   loadSchedule(): void {
     this.chatbotService.getSchedule().subscribe({
       next: (s) => {
+        this.showRequirementsToUsers.set(s.showRequirementsToUsers ?? false);
         if (s.available24h) {
           this.scheduleText.set('Disponível 24h');
         } else if (s.startTime && s.endTime) {
@@ -223,6 +227,10 @@ export class ChatbotComponent implements OnInit {
       },
       error: () => this.scheduleText.set('')
     });
+  }
+
+  canShowRequirements(): boolean {
+    return this.authService.isAdmin() || this.showRequirementsToUsers();
   }
 
   canSendMessage(): boolean {
@@ -238,7 +246,6 @@ export class ChatbotComponent implements OnInit {
       return;
     }
 
-    // Verifica disponibilidade antes de enviar
         if (!this.isAvailable()) {
       this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
       return;

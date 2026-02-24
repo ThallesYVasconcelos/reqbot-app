@@ -139,9 +139,11 @@
               [ngModel]="newProjectDescription()"
               (ngModelChange)="newProjectDescription.set($event)"
               rows="3"
-              placeholder="Digite a descrição do projeto"
+              maxlength="5000"
+              placeholder="Digite a descrição do projeto (máx. 5000 caracteres)"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             ></textarea>
+            <p class="text-xs text-gray-500 mt-1">{{ newProjectDescription().length }}/5000</p>
           </div>
 
           <div class="flex gap-3 justify-end">
