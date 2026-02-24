@@ -1,7 +1,9 @@
 import { Component, OnInit, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { ChatbotService } from '../../services/chatbot.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatResponse, ChatRequest } from '../../models/chatbot.model';
@@ -48,6 +50,13 @@ export class ChatbotComponent implements OnInit {
   projectDescription = signal<string>('');
 
   private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
+
+  /** Quando true, simula a visão do usuário (não admin) - usado em "Ver como usuário" */
+  viewAsUser = toSignal(
+    this.route.queryParams.pipe(map(p => p['viewAsUser'] === 'true')),
+    { initialValue: false }
+  );
 
   constructor(
     private chatbotService: ChatbotService,
@@ -230,6 +239,9 @@ export class ChatbotComponent implements OnInit {
   }
 
   canShowRequirements(): boolean {
+    if (this.viewAsUser()) {
+      return this.showRequirementsToUsers();
+    }
     return this.authService.isAdmin() || this.showRequirementsToUsers();
   }
 
