@@ -25,6 +25,25 @@ interface ChatSession {
 const STORAGE_KEY_PREFIX = 'chatbot_sessions_';
 const MAX_PROJECT_NAME_LENGTH = 25;
 
+/** Converte horário em UTC (HH:mm ou HH:mm:ss) para o fuso local do usuário */
+function utcTimeToLocal(timeStr: string | null | undefined): string {
+  if (!timeStr || !timeStr.trim()) return timeStr ?? '';
+  const parts = timeStr.trim().split(':');
+  const h = parseInt(parts[0] || '0', 10);
+  const m = parseInt(parts[1] || '0', 10);
+  const s = parseInt(parts[2] || '0', 10);
+  const utcDate = new Date(Date.UTC(2000, 0, 1, h, m, s));
+  return utcDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+/** Normaliza timestamp do backend (sem timezone) para UTC, para o date pipe exibir no fuso local */
+function toLocalTimestamp(ts: string | null | undefined): string {
+  if (!ts || !ts.trim()) return ts ?? '';
+  const s = ts.trim();
+  if (s.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(s)) return s;
+  return s + (s.includes('T') ? 'Z' : '');
+}
+
 @Component({
   selector: 'app-chatbot',
   standalone: true,
@@ -73,6 +92,9 @@ export class ChatbotComponent implements OnInit {
     if (name.length <= MAX_PROJECT_NAME_LENGTH) return name;
     return name.slice(0, MAX_PROJECT_NAME_LENGTH - 3) + '...';
   }
+
+  /** Normaliza timestamp do backend para exibir no fuso local do usuário */
+  toLocalTimestamp = toLocalTimestamp;
 
   private getStorageKey(): string {
     const email = this.authService.user()?.email ?? 'user';
@@ -229,7 +251,9 @@ export class ChatbotComponent implements OnInit {
         if (s.available24h) {
           this.scheduleText.set('Disponível 24h');
         } else if (s.startTime && s.endTime) {
-          this.scheduleText.set('Horário: ' + s.startTime + ' às ' + s.endTime);
+          const start = utcTimeToLocal(s.startTime);
+          const end = utcTimeToLocal(s.endTime);
+          this.scheduleText.set('Horário: ' + start + ' às ' + end);
         } else {
           this.scheduleText.set('');
         }

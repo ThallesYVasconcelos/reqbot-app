@@ -167,7 +167,7 @@
                 }
               }
               <p class="text-xs mt-2 opacity-70">
-                {{ message.timestamp | date:'HH:mm' }}
+                {{ toLocalTimestamp(message.timestamp) | date:'HH:mm' }}
               </p>
             </div>
           </div>
