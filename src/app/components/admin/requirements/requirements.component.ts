@@ -175,14 +175,49 @@ export class RequirementsComponent implements OnInit {
     });
   }
 
-  saveRequirement(): void {
+  saveRequirementWithOriginal(): void {
+    const req = this.aiResponse();
+    if (!req || !this.selectedProjectId() || this.selectedProjectId() === 'all') return;
+
+    const raw = this.rawRequirement().trim();
+    if (!raw) {
+      this.error.set('Preencha o requisito em linguagem natural');
+      return;
+    }
+
+    this.savingRequirement.set(true);
+    this.error.set(null);
+
+    const saveRequest: SaveRequirementRequest = {
+      requirementSetId: this.selectedProjectId(),
+      rawRequirement: raw,
+      refinedRequirement: raw,
+      useRefinedVersion: false,
+      analise: req.analise ?? undefined,
+      ambiguityWarnings: req.ambiguityWarnings?.length ? req.ambiguityWarnings : undefined
+    };
+
+    this.requirementService.save(saveRequest).subscribe({
+      next: () => {
+        this.savingRequirement.set(false);
+        this.loadRequirements();
+        this.closeCreateModal();
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao salvar requisito'));
+        this.savingRequirement.set(false);
+      }
+    });
+  }
+
+  saveRequirementWithRefined(): void {
     const req = this.aiResponse();
     if (!req || !this.selectedProjectId() || this.selectedProjectId() === 'all') return;
 
     const raw = this.rawRequirement().trim();
     const refined = this.getEditableRefinedRequirement();
     if (!raw || !refined) {
-      this.error.set('Preencha o prompt e o requisito refinado');
+      this.error.set('Preencha o requisito em linguagem natural e o refinado');
       return;
     }
 
@@ -193,9 +228,36 @@ export class RequirementsComponent implements OnInit {
       requirementSetId: this.selectedProjectId(),
       rawRequirement: raw,
       refinedRequirement: refined,
-      useRefinedVersion: this.useRefinedVersion(),
+      useRefinedVersion: true,
       analise: req.analise ?? undefined,
       ambiguityWarnings: req.ambiguityWarnings?.length ? req.ambiguityWarnings : undefined
+    };
+
+    this.requirementService.save(saveRequest).subscribe({
+      next: () => {
+        this.savingRequirement.set(false);
+        this.loadRequirements();
+        this.closeCreateModal();
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao salvar requisito'));
+        this.savingRequirement.set(false);
+      }
+    });
+  }
+
+  saveRequirementDirect(): void {
+    const text = this.rawRequirement().trim();
+    if (!text || !this.selectedProjectId() || this.selectedProjectId() === 'all') return;
+
+    this.savingRequirement.set(true);
+    this.error.set(null);
+
+    const saveRequest: SaveRequirementRequest = {
+      requirementSetId: this.selectedProjectId(),
+      rawRequirement: text,
+      refinedRequirement: text,
+      useRefinedVersion: true
     };
 
     this.requirementService.save(saveRequest).subscribe({
@@ -217,15 +279,19 @@ export class RequirementsComponent implements OnInit {
     return this.editableRefinedRequirement().trim() || this.aiResponse()?.refinedRequirement || '';
   }
 
-  editRawRequirement = signal('');
-  editRefinedRequirement = signal('');
-  editUseRefinedVersion = signal(true);
+  editRequirement = signal('');
+  editProcessingAI = signal(false);
+  editAiResponse = signal<Requirement | null>(null);
+  editEditableRefinedRequirement = signal('');
+  editSavingRequirement = signal(false);
 
   openEditModal(requirement: Requirement): void {
     this.selectedRequirement.set(requirement);
-    this.editRawRequirement.set(requirement.rawRequirement ?? requirement.refinedRequirement);
-    this.editRefinedRequirement.set(requirement.refinedRequirement);
-    this.editUseRefinedVersion.set(true);
+    this.editRequirement.set(requirement.refinedRequirement);
+    this.editProcessingAI.set(false);
+    this.editAiResponse.set(null);
+    this.editEditableRefinedRequirement.set('');
+    this.editSavingRequirement.set(false);
     this.showEditModal.set(true);
     this.error.set(null);
   }
@@ -233,37 +299,136 @@ export class RequirementsComponent implements OnInit {
   closeEditModal(): void {
     this.showEditModal.set(false);
     this.selectedRequirement.set(null);
-    this.editRawRequirement.set('');
-    this.editRefinedRequirement.set('');
+    this.editRequirement.set('');
+    this.editProcessingAI.set(false);
+    this.editAiResponse.set(null);
+    this.editEditableRefinedRequirement.set('');
+    this.editSavingRequirement.set(false);
     this.error.set(null);
   }
 
-  updateRequirement(): void {
+  updateRequirementDirect(): void {
     const req = this.selectedRequirement();
     if (!req) return;
 
-    const raw = this.editRawRequirement().trim();
-    const refined = this.editRefinedRequirement().trim();
-    if (!raw || !refined) {
-      this.error.set('Preencha o prompt e o requisito refinado');
-      return;
-    }
+    const text = this.editRequirement().trim();
+    if (!text) return;
 
-    this.loading.set(true);
+    this.editSavingRequirement.set(true);
+    this.error.set(null);
+
     const request: UpdateRequirementRequest = {
-      rawRequirement: raw,
-      refinedRequirement: refined,
-      useRefinedVersion: this.editUseRefinedVersion()
+      rawRequirement: text,
+      refinedRequirement: text,
+      useRefinedVersion: true
     };
 
     this.requirementService.update(req.uuid, request).subscribe({
       next: () => {
+        this.editSavingRequirement.set(false);
         this.loadRequirements();
         this.closeEditModal();
       },
       error: (err) => {
         this.error.set(this.getUserFriendlyError(err, 'Erro ao atualizar requisito'));
-        this.loading.set(false);
+        this.editSavingRequirement.set(false);
+      }
+    });
+  }
+
+  editRefineRequirement(): void {
+    const req = this.selectedRequirement();
+    if (!req || !req.requirementSetId) return;
+
+    const text = this.editRequirement().trim();
+    if (!text) return;
+
+    this.editProcessingAI.set(true);
+    this.editAiResponse.set(null);
+    this.error.set(null);
+
+    this.requirementService.refine({
+      requirementSetId: req.requirementSetId,
+      requirement: text
+    }).subscribe({
+      next: (refined) => {
+        this.editAiResponse.set(refined);
+        this.editEditableRefinedRequirement.set(refined.refinedRequirement);
+        this.editProcessingAI.set(false);
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao processar requisito'));
+        this.editProcessingAI.set(false);
+      }
+    });
+  }
+
+  editRefazerRequirement(): void {
+    this.editRefineRequirement();
+  }
+
+  updateRequirementWithOriginal(): void {
+    const req = this.selectedRequirement();
+    if (!req) return;
+
+    const raw = this.editRequirement().trim();
+    if (!raw) {
+      this.error.set('Preencha o requisito em linguagem natural');
+      return;
+    }
+
+    this.editSavingRequirement.set(true);
+    this.error.set(null);
+
+    const request: UpdateRequirementRequest = {
+      rawRequirement: raw,
+      refinedRequirement: raw,
+      useRefinedVersion: false
+    };
+
+    this.requirementService.update(req.uuid, request).subscribe({
+      next: () => {
+        this.editSavingRequirement.set(false);
+        this.loadRequirements();
+        this.closeEditModal();
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao atualizar requisito'));
+        this.editSavingRequirement.set(false);
+      }
+    });
+  }
+
+  updateRequirementWithRefined(): void {
+    const req = this.selectedRequirement();
+    const aiReq = this.editAiResponse();
+    if (!req || !aiReq) return;
+
+    const raw = this.editRequirement().trim();
+    const refined = this.editEditableRefinedRequirement().trim() || aiReq.refinedRequirement;
+    if (!raw || !refined) {
+      this.error.set('Preencha o requisito refinado');
+      return;
+    }
+
+    this.editSavingRequirement.set(true);
+    this.error.set(null);
+
+    const request: UpdateRequirementRequest = {
+      rawRequirement: raw,
+      refinedRequirement: refined,
+      useRefinedVersion: true
+    };
+
+    this.requirementService.update(req.uuid, request).subscribe({
+      next: () => {
+        this.editSavingRequirement.set(false);
+        this.loadRequirements();
+        this.closeEditModal();
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao atualizar requisito'));
+        this.editSavingRequirement.set(false);
       }
     });
   }
