@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { WorkspaceService } from './workspace.service';
 import { AuthResponse, User } from '../models/auth.model';
 
 @Injectable({
@@ -15,7 +16,8 @@ export class AuthService {
 
   constructor(
     private api: ApiService,
-    private router: Router
+    private router: Router,
+    private workspaceService: WorkspaceService
   ) {
     if (isPlatformBrowser(this.platformId)) {
       this.loadUserFromStorage();
@@ -85,17 +87,25 @@ export class AuthService {
     }
 
     setTimeout(() => {
-      if (isPlatformBrowser(this.platformId)) {
-        if (authData!.role === 'ADMIN') {
-          this.router.navigate(['/admin/dashboard']).then(success => {
-            if (!success) window.location.href = '/admin/dashboard';
+      if (!isPlatformBrowser(this.platformId)) return;
+
+      this.workspaceService.loadWorkspaces().subscribe({
+        next: (workspaces) => {
+          const path = workspaces.length === 0
+            ? (authData!.role === 'ADMIN' ? '/admin/workspaces' : '/workspaces')
+            : (authData!.role === 'ADMIN' ? '/admin/dashboard' : '/chatbot');
+
+          this.router.navigate([path]).then(success => {
+            if (!success) window.location.href = path;
           });
-        } else {
-          this.router.navigate(['/chatbot']).then(success => {
-            if (!success) window.location.href = '/chatbot';
+        },
+        error: () => {
+          const fallbackPath = authData!.role === 'ADMIN' ? '/admin/dashboard' : '/chatbot';
+          this.router.navigate([fallbackPath]).then(success => {
+            if (!success) window.location.href = fallbackPath;
           });
         }
-      }
+      });
     }, 100);
   }
 
@@ -104,6 +114,7 @@ export class AuthService {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
+    this.workspaceService.clearSelection();
     this.currentUser.set(null);
     this.router.navigate(['/login']);
   }

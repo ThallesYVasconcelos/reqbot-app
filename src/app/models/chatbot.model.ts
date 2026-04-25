@@ -24,6 +24,7 @@ export interface ChatResponse {
   answer: string;
   question: string;
   timestamp: string;
+  success: boolean;
   isAvailable: boolean;
 }
 

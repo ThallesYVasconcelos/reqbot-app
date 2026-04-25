@@ -26,6 +26,10 @@ export const routes: Routes = [
         loadComponent: () => import('./components/admin/projects/projects.component').then(m => m.ProjectsComponent)
       },
       {
+        path: 'workspaces',
+        loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent)
+      },
+      {
         path: 'projects/:id',
         loadComponent: () => import('./components/admin/project-detail/project-detail.component').then(m => m.ProjectDetailComponent)
       },
@@ -52,6 +56,11 @@ export const routes: Routes = [
     path: 'chatbot',
     canActivate: [authGuard],
     loadComponent: () => import('./components/chatbot/chatbot.component').then(m => m.ChatbotComponent)
+  },
+  {
+    path: 'workspaces',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent)
   },
   {
     path: '',

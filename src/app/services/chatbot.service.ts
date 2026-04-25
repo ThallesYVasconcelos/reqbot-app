@@ -9,6 +9,7 @@ import {
   ChatRequest
 } from '../models/chatbot.model';
 import { Requirement } from '../models/requirement.model';
+import { ChatMessageDTO } from '../models/workspace.model';
 
 @Injectable({
   providedIn: 'root'
@@ -45,6 +46,16 @@ export class ChatbotService {
   // User endpoints
   askQuestion(request: ChatRequest): Observable<ChatResponse> {
     return this.api.post<ChatResponse>('/api/chatbot/ask', request);
+  }
+
+  getMyHistory(): Observable<ChatMessageDTO[]> {
+    return this.api.get<ChatMessageDTO[]>('/api/chatbot/history/me');
+  }
+
+  getProjectHistory(requirementSetId: string): Observable<ChatMessageDTO[]> {
+    return this.api.get<ChatMessageDTO[]>(
+      `/api/chatbot/history/project/${requirementSetId}`
+    );
   }
 
   getRequirementSet(): Observable<{ id: string; name: string; description?: string }> {
