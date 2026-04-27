@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { RequirementSet, CreateRequirementSetRequest } from '../models/requirement-set.model';
+import { RequirementSet } from '../models/requirement-set.model';
 import { Requirement } from '../models/requirement.model';
 
 @Injectable({
@@ -10,16 +10,8 @@ import { Requirement } from '../models/requirement.model';
 export class RequirementSetService {
   constructor(private api: ApiService) {}
 
-  getAll(): Observable<RequirementSet[]> {
-    return this.api.get<RequirementSet[]>('/api/requirement-sets');
-  }
-
   getById(id: string): Observable<RequirementSet> {
     return this.api.get<RequirementSet>(`/api/requirement-sets/${id}`);
-  }
-
-  create(request: CreateRequirementSetRequest): Observable<RequirementSet> {
-    return this.api.post<RequirementSet>('/api/requirement-sets', request);
   }
 
   delete(id: string): Observable<void> {

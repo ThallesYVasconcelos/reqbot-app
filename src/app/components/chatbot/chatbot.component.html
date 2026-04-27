@@ -50,9 +50,19 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        @if (requirementSetName()) {
-          <span class="text-sm text-gray-600">Projeto: {{ requirementSetName() }}</span>
+        @if (activeWorkspace()) {
+          <span class="text-sm font-medium text-gray-800">Workspace: {{ activeWorkspace()!.name }}</span>
         }
+        @if (requirementSetName()) {
+          <span class="text-sm text-gray-600">· Atividade: {{ requirementSetName() }}</span>
+        }
+        <button
+          type="button"
+          (click)="goToWorkspaces()"
+          class="text-sm text-blue-600 hover:text-blue-800"
+        >
+          Workspaces
+        </button>
         @if (canShowRequirements()) {
           <button
             (click)="toggleRequirementsModal()"
@@ -82,39 +92,46 @@
   </header>
 
   <div class="flex h-[calc(100vh-80px)]">
-    <!-- Sidebar Esquerda: Abas de Chats por Projeto -->
+    <!-- Workspaces: cada um tem chat e histórico separados no backend -->
     <aside 
       class="w-56 bg-white border-r border-gray-300 p-4 overflow-y-auto transition-all duration-300 flex-shrink-0"
       [class.hidden]="!showMenu()"
     >
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">Conversas</h2>
+        <h2 class="text-lg font-semibold text-gray-900">Workspaces</h2>
       </div>
       <div class="space-y-1">
-        @for (session of sessions(); track session.projectId) {
+        @for (w of workspaces(); track w.id) {
           <button
-            (click)="selectSession(session.projectId)"
+            (click)="selectWorkspaceFromSidebar(w.id)"
             class="w-full text-left px-3 py-2 rounded-lg transition-colors truncate"
-            [class.bg-blue-100]="activeSessionId() === session.projectId"
-            [class.text-blue-800]="activeSessionId() === session.projectId"
-            [class.hover:bg-gray-100]="activeSessionId() !== session.projectId"
-            [class.text-gray-700]="activeSessionId() !== session.projectId"
-            [title]="session.projectName"
+            [class.bg-blue-100]="activeSessionId() === w.id"
+            [class.text-blue-800]="activeSessionId() === w.id"
+            [class.hover:bg-gray-100]="activeSessionId() !== w.id"
+            [class.text-gray-700]="activeSessionId() !== w.id"
+            [title]="w.name"
           >
-            {{ truncateProjectName(session.projectName) }}
+            {{ truncateName(w.name) }}
           </button>
         }
-        @if (sessions().length === 0) {
-          <p class="text-gray-500 text-sm">Nenhuma conversa ainda</p>
+        @if (workspaces().length === 0 && !bootLoading()) {
+          <p class="text-gray-500 text-sm">Nenhum workspace. Use o código de convite em Workspaces.</p>
+        }
+        @if (bootLoading()) {
+          <p class="text-gray-500 text-sm">Carregando…</p>
         }
       </div>
     </aside>
 
     <!-- Área de Chat (Centro) -->
     <main class="flex-1 flex flex-col min-w-0">
-      @if (error()) {
+      @if (bootLoading()) {
+        <div class="p-6 text-center text-gray-600">Carregando workspaces…</div>
+      }
+      @if (error() && !bootLoading()) {
         <div class="p-4 bg-red-50 border-b border-red-200">
           <p class="text-red-700">{{ error() }}</p>
+          <button type="button" (click)="goToWorkspaces()" class="mt-2 text-sm text-red-800 underline">Ir para Workspaces</button>
         </div>
       }
 
@@ -193,7 +210,8 @@
         <form (ngSubmit)="sendMessage()" class="flex gap-3">
           <input
             type="text"
-            [(ngModel)]="currentQuestion"
+            [ngModel]="currentQuestion()"
+            (ngModelChange)="currentQuestion.set($event)"
             name="question"
             placeholder="Digite sua pergunta..."
             class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -207,8 +225,8 @@
             Enviar
           </button>
         </form>
-        @if (!canSendMessage() && activeSessionId()) {
-          <p class="text-xs text-gray-500 mt-2">Apenas o projeto ativo permite enviar mensagens.</p>
+        @if (!canSendMessage() && activeSessionId() && !bootLoading()) {
+          <p class="text-xs text-gray-500 mt-2">Envie mensagens quando o chatbot estiver ativo e dentro do horário do workspace.</p>
         }
       </div>
     </main>

@@ -1,13 +1,17 @@
 import { Component, OnInit, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { ChatbotService } from '../../services/chatbot.service';
+import { WorkspaceService } from '../../services/workspace.service';
 import { AuthService } from '../../services/auth.service';
-import { ChatResponse, ChatRequest } from '../../models/chatbot.model';
+import { RequirementSetService } from '../../services/requirement-set.service';
+import { ChatRequest } from '../../models/chatbot.model';
+import { ChatbotConfig } from '../../models/chatbot.model';
 import { Requirement } from '../../models/requirement.model';
+import { WorkspaceDTO } from '../../models/workspace.model';
 
 interface Message {
   question: string;
@@ -17,15 +21,14 @@ interface Message {
 }
 
 interface ChatSession {
-  projectId: string;
-  projectName: string;
+  workspaceId: string;
+  workspaceName: string;
   messages: Message[];
 }
 
-const STORAGE_KEY_PREFIX = 'chatbot_sessions_';
-const MAX_PROJECT_NAME_LENGTH = 25;
+const STORAGE_KEY_PREFIX = 'chatbot_ws_sessions_';
+const MAX_NAME_LENGTH = 28;
 
-/** Converte horário em UTC (HH:mm ou HH:mm:ss) para o fuso local do usuário */
 function utcTimeToLocal(timeStr: string | null | undefined): string {
   if (!timeStr || !timeStr.trim()) return timeStr ?? '';
   const parts = timeStr.trim().split(':');
@@ -36,7 +39,6 @@ function utcTimeToLocal(timeStr: string | null | undefined): string {
   return utcDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
-/** Normaliza timestamp do backend (sem timezone) para UTC, para o date pipe exibir no fuso local */
 function toLocalTimestamp(ts: string | null | undefined): string {
   if (!ts || !ts.trim()) return ts ?? '';
   const s = ts.trim();
@@ -60,40 +62,44 @@ export class ChatbotComponent implements OnInit {
   isAvailable = signal(false);
   requirementSetName = signal<string>('');
   activeRequirementSetId = signal<string>('');
+  activeWorkspace = signal<WorkspaceDTO | null>(null);
+  activeConfig = signal<ChatbotConfig | null>(null);
   approvedRequirements = signal<Requirement[]>([]);
-  approvedByProject = signal<Record<string, Requirement[]>>({});
+  approvedByWorkspace = signal<Record<string, Requirement[]>>({});
   showRequirementsModal = signal(false);
   showMenu = signal(true);
   scheduleText = signal<string>('');
   showRequirementsToUsers = signal(false);
   projectDescription = signal<string>('');
+  bootLoading = signal(true);
 
   private platformId = inject(PLATFORM_ID);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private chatbotService = inject(ChatbotService);
+  private workspaceService = inject(WorkspaceService);
+  public authService = inject(AuthService);
+  private requirementSetService = inject(RequirementSetService);
 
-  /** Quando true, simula a visão do usuário (não admin) - usado em "Ver como usuário" */
   viewAsUser = toSignal(
     this.route.queryParams.pipe(map(p => p['viewAsUser'] === 'true')),
     { initialValue: false }
   );
 
-  constructor(
-    private chatbotService: ChatbotService,
-    public authService: AuthService
-  ) {}
+  /** Lista de workspaces do utilizador (para trocar de "sala") */
+  workspaces = this.workspaceService.workspaces;
 
   messages = computed(() => {
     const sid = this.activeSessionId();
-    const session = this.sessions().find(s => s.projectId === sid);
+    const session = this.sessions().find(s => s.workspaceId === sid);
     return session?.messages ?? [];
   });
 
-  truncateProjectName(name: string): string {
-    if (name.length <= MAX_PROJECT_NAME_LENGTH) return name;
-    return name.slice(0, MAX_PROJECT_NAME_LENGTH - 3) + '...';
+  truncateName(name: string): string {
+    if (name.length <= MAX_NAME_LENGTH) return name;
+    return name.slice(0, MAX_NAME_LENGTH - 3) + '...';
   }
 
-  /** Normaliza timestamp do backend para exibir no fuso local do usuário */
   toLocalTimestamp = toLocalTimestamp;
 
   private getStorageKey(): string {
@@ -108,83 +114,81 @@ export class ChatbotComponent implements OnInit {
       const stored = localStorage.getItem(key);
       if (stored) {
         const parsed = JSON.parse(stored) as ChatSession[];
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0 && 'workspaceId' in (parsed[0] as any)) {
           this.sessions.set(parsed);
         }
       }
     } catch {
-      // Migração do formato antigo
-      const oldKey = `chatbot_messages_${this.authService.user()?.email ?? 'user'}`;
-      const oldStored = localStorage.getItem(oldKey);
-      if (oldStored) {
-        try {
-          const oldMsgs = JSON.parse(oldStored) as Message[];
-          if (Array.isArray(oldMsgs) && oldMsgs.length > 0) {
-            const legacy: ChatSession = {
-              projectId: 'legacy',
-              projectName: 'Conversa anterior',
-              messages: oldMsgs
-            };
-            this.sessions.set([legacy]);
-            this.activeSessionId.set('legacy');
-            this.saveSessionsToStorage([legacy]);
-            localStorage.removeItem(oldKey);
-          }
-        } catch {}
-      }
+      /* ignora */
     }
   }
 
   private saveSessionsToStorage(sessions?: ChatSession[]): void {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
-      const key = this.getStorageKey();
       const toSave = sessions ?? this.sessions();
-      localStorage.setItem(key, JSON.stringify(toSave));
+      localStorage.setItem(this.getStorageKey(), JSON.stringify(toSave));
     } catch {
-      // Ignora erros de quota
+      /* quota */
     }
   }
 
   ngOnInit(): void {
     this.loadSessionsFromStorage();
-    this.loadChatbotInfo();
-    this.checkAvailability();
-  }
+    this.bootLoading.set(true);
+    this.error.set(null);
 
-  loadChatbotInfo(): void {
-    this.chatbotService.getRequirementSet().subscribe({
-      next: (set) => {
-        this.requirementSetName.set(set.name);
-        this.activeRequirementSetId.set(set.id);
-        this.projectDescription.set(set.description ?? '');
-        this.ensureSessionExists(set.id, set.name);
-        this.activeSessionId.set(set.id);
-        this.loadApprovedRequirements();
-        this.loadSchedule();
+    this.workspaceService.loadWorkspaces().subscribe({
+      next: (list) => {
+        this.bootLoading.set(false);
+        if (list.length === 0) {
+          this.error.set('Nenhum workspace. Entre com um código de convite ou peça acesso a um administrador.');
+          this.isAvailable.set(false);
+          return;
+        }
+        const wid = this.workspaceService.selectedWorkspaceId() || list[0].id;
+        this.workspaceService.selectWorkspace(wid);
+        this.selectSession(wid, list);
       },
       error: (err) => {
-        if (err.status === 404) {
-          this.error.set('Reqbot não está configurado ou está inativo');
-          this.isAvailable.set(false);
-        } else {
-          this.error.set(err.error?.message || 'Erro ao carregar informações do chatbot');
-        }
+        this.bootLoading.set(false);
+        this.error.set(err.error?.message || 'Erro ao carregar workspaces');
       }
     });
   }
 
-  private ensureSessionExists(projectId: string, projectName: string): void {
+  private selectSession(workspaceId: string, workspaceList: WorkspaceDTO[]): void {
+    const w = workspaceList.find(x => x.id === workspaceId) ?? workspaceList[0];
+    this.activeSessionId.set(w.id);
+    this.activeWorkspace.set(w);
+    this.ensureSessionExists(w.id, w.name);
+    this.loadChatbotInfoForWorkspace(w.id);
+  }
+
+  selectWorkspaceFromSidebar(workspaceId: string): void {
+    this.workspaceService.selectWorkspace(workspaceId);
+    const w = this.workspaces().find(x => x.id === workspaceId);
+    if (w) {
+      this.activeWorkspace.set(w);
+    }
+    this.activeSessionId.set(workspaceId);
+    this.ensureSessionExists(workspaceId, w?.name ?? 'Workspace');
+    const cached = this.approvedByWorkspace()[workspaceId];
+    this.approvedRequirements.set(cached ?? []);
+    this.loadChatbotInfoForWorkspace(workspaceId);
+  }
+
+  private ensureSessionExists(workspaceId: string, name: string): void {
     const sessions = this.sessions();
-    if (!sessions.some(s => s.projectId === projectId)) {
-      const updated = [...sessions, { projectId, projectName, messages: [] }];
+    if (!sessions.some(s => s.workspaceId === workspaceId)) {
+      const updated = [...sessions, { workspaceId, workspaceName: name, messages: [] }];
       this.sessions.set(updated);
       this.saveSessionsToStorage(updated);
     } else {
-      const existing = sessions.find(s => s.projectId === projectId);
-      if (existing && existing.projectName !== projectName) {
+      const cur = sessions.find(s => s.workspaceId === workspaceId);
+      if (cur && cur.workspaceName !== name) {
         const updated = sessions.map(s =>
-          s.projectId === projectId ? { ...s, projectName } : s
+          s.workspaceId === workspaceId ? { ...s, workspaceName: name } : s
         );
         this.sessions.set(updated);
         this.saveSessionsToStorage(updated);
@@ -192,73 +196,73 @@ export class ChatbotComponent implements OnInit {
     }
   }
 
-  selectSession(projectId: string): void {
-    this.activeSessionId.set(projectId);
-    const cached = this.approvedByProject()[projectId];
-    this.approvedRequirements.set(cached ?? []);
-  }
+  private loadChatbotInfoForWorkspace(workspaceId: string): void {
+    this.error.set(null);
+    this.chatbotService.getWorkspaceActiveConfig(workspaceId).subscribe({
+      next: (config) => {
+        this.activeConfig.set(config);
+        this.isAvailable.set(config.availableNow !== false);
+        this.showRequirementsToUsers.set(config.showRequirementsToUsers ?? false);
+        this.activeRequirementSetId.set(config.requirementSetId);
+        this.requirementSetName.set(config.requirementSetName);
+        this.projectDescription.set('');
 
-  private updateSessionMessages(projectId: string, updater: (msgs: Message[]) => Message[]): void {
-    this.sessions.update(ss => {
-      const updated = ss.map(s => {
-        if (s.projectId !== projectId) return s;
-        return { ...s, messages: updater(s.messages) };
-      });
-      this.saveSessionsToStorage(updated);
-      return updated;
-    });
-  }
-
-  checkAvailability(): void {
-    this.chatbotService.getAvailability().subscribe({
-      next: (available) => {
-        this.isAvailable.set(available);
-        if (!available) {
-          this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
+        if (config.startTime && config.endTime) {
+          const a = (config.startTime || '').slice(0, 5);
+          const b = (config.endTime || '').slice(0, 5);
+          this.scheduleText.set(`Horário: ${utcTimeToLocal(a)} às ${utcTimeToLocal(b)}`);
         } else {
-          // Limpa o erro se estiver disponível
-          if (this.error()?.includes('fora do horário')) {
-            this.error.set(null);
-          }
+          this.scheduleText.set('Disponível 24h');
+        }
+
+        this.requirementSetService.getById(config.requirementSetId).subscribe({
+          next: (set) => {
+            this.projectDescription.set(set.description || '');
+            this.requirementSetName.set(set.name);
+          },
+          error: () => {}
+        });
+
+        this.loadApprovedForWorkspace(workspaceId, config.requirementSetId);
+        if (this.error()?.includes('não está configurado')) {
+          this.error.set(null);
         }
       },
       error: (err) => {
+        this.activeConfig.set(null);
         this.isAvailable.set(false);
         if (err.status === 404) {
-          this.error.set('Reqbot não está configurado ou está inativo');
+          this.error.set('Chatbot deste workspace não está configurado ou está inativo.');
+        } else {
+          this.error.set(err.error?.message || 'Erro ao carregar configuração do chatbot');
         }
       }
     });
   }
 
-  loadApprovedRequirements(): void {
-    const projectId = this.activeRequirementSetId();
-    this.chatbotService.getRequirements().subscribe({
+  private loadApprovedForWorkspace(workspaceId: string, requirementSetId: string): void {
+    this.requirementSetService.getRequirements(requirementSetId).subscribe({
       next: (requirements) => {
-        this.approvedByProject.update(m => ({ ...m, [projectId]: requirements }));
-        if (this.activeSessionId() === projectId) {
+        this.approvedByWorkspace.update(m => ({ ...m, [workspaceId]: requirements }));
+        if (this.activeSessionId() === workspaceId) {
           this.approvedRequirements.set(requirements);
         }
       },
-      error: () => {}
+      error: () => {
+        this.approvedByWorkspace.update(m => ({ ...m, [workspaceId]: [] }));
+        this.approvedRequirements.set([]);
+      }
     });
   }
 
-  loadSchedule(): void {
-    this.chatbotService.getSchedule().subscribe({
-      next: (s) => {
-        this.showRequirementsToUsers.set(s.showRequirementsToUsers ?? false);
-        if (s.available24h) {
-          this.scheduleText.set('Disponível 24h');
-        } else if (s.startTime && s.endTime) {
-          const start = utcTimeToLocal(s.startTime);
-          const end = utcTimeToLocal(s.endTime);
-          this.scheduleText.set('Horário: ' + start + ' às ' + end);
-        } else {
-          this.scheduleText.set('');
-        }
-      },
-      error: () => this.scheduleText.set('')
+  private updateSessionMessages(workspaceId: string, updater: (msgs: Message[]) => Message[]): void {
+    this.sessions.update(ss => {
+      const updated = ss.map(s => {
+        if (s.workspaceId !== workspaceId) return s;
+        return { ...s, messages: updater(s.messages) };
+      });
+      this.saveSessionsToStorage(updated);
+      return updated;
     });
   }
 
@@ -270,19 +274,25 @@ export class ChatbotComponent implements OnInit {
   }
 
   canSendMessage(): boolean {
-    return this.activeSessionId() === this.activeRequirementSetId();
+    return (
+      !!this.activeSessionId() &&
+      this.activeConfig() !== null &&
+      this.isAvailable() &&
+      this.activeConfig()!.isActive
+    );
   }
 
   sendMessage(): void {
     if (!this.currentQuestion().trim() || this.loading()) {
       return;
     }
+    const workspaceId = this.activeSessionId();
     if (!this.canSendMessage()) {
-      this.error.set('É possível enviar mensagens apenas no chatbot do projeto ativo.');
+      this.error.set('Chatbot indisponível no momento ou inativo para este workspace.');
       return;
     }
 
-        if (!this.isAvailable()) {
+    if (!this.isAvailable()) {
       this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
       return;
     }
@@ -292,49 +302,46 @@ export class ChatbotComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    const projectId = this.activeSessionId();
-    this.updateSessionMessages(projectId, msgs => [...msgs, {
-      question,
-      answer: '',
-      timestamp: new Date().toISOString(),
-      isUser: true
-    }]);
+    this.updateSessionMessages(workspaceId, msgs => [
+      ...msgs,
+      { question, answer: '', timestamp: new Date().toISOString(), isUser: true }
+    ]);
 
     const request: ChatRequest = { question };
-
-    this.chatbotService.askQuestion(request).subscribe({
-      next: (response: ChatResponse) => {
-        this.isAvailable.set(response.isAvailable ?? true);
-
-        if (!response.isAvailable) {
+    this.chatbotService.askInWorkspace(workspaceId, request).subscribe({
+      next: (response) => {
+        this.isAvailable.set(response.chatbotAvailable);
+        if (!response.chatbotAvailable) {
           this.error.set('Desculpe, o Reqbot está fora do horário de funcionamento.');
-          this.updateSessionMessages(projectId, msgs => msgs.slice(0, -1));
+          this.updateSessionMessages(workspaceId, msgs => msgs.slice(0, -1));
         } else {
-          if (!response.answer || response.answer.trim() === '') {
-            response.answer = 'Desculpe, não consegui processar sua pergunta. Por favor, tente novamente.';
+          let answer = response.answer;
+          if (!answer || !answer.trim()) {
+            answer = 'Desculpe, não consegui processar sua pergunta. Por favor, tente novamente.';
           }
           if (this.error()?.includes('fora do horário')) {
             this.error.set(null);
           }
-          this.updateSessionMessages(projectId, msgs => [...msgs, {
-            question: response.question || question,
-            answer: response.answer,
-            timestamp: response.timestamp || new Date().toISOString(),
-            isUser: false
-          }]);
+          const ts = response.answeredAt || new Date().toISOString();
+          this.updateSessionMessages(workspaceId, msgs => [
+            ...msgs,
+            {
+              question: response.question || question,
+              answer,
+              timestamp: ts,
+              isUser: false
+            }
+          ]);
         }
         this.loading.set(false);
       },
       error: (err) => {
         this.loading.set(false);
-        this.updateSessionMessages(projectId, msgs => msgs.slice(0, -1));
-        
+        this.updateSessionMessages(workspaceId, msgs => msgs.slice(0, -1));
         if (err.status === 400) {
           this.error.set(err.error?.message || 'Reqbot não está disponível no momento');
-          this.isAvailable.set(false);
         } else if (err.status === 404) {
-          this.error.set('Chatbot não está configurado ou está inativo');
-          this.isAvailable.set(false);
+          this.error.set('Chatbot não está configurado para este workspace');
         } else {
           this.error.set(err.error?.message || 'Erro ao enviar mensagem');
         }
@@ -344,6 +351,10 @@ export class ChatbotComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  goToWorkspaces(): void {
+    this.router.navigate(this.authService.isAdmin() ? ['/admin/workspaces'] : ['/workspaces']);
   }
 
   toggleRequirementsModal(): void {

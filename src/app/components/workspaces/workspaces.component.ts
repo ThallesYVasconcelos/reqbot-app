@@ -1,10 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { WorkspaceService } from '../../services/workspace.service';
 import { ConfirmModalComponent } from '../shared/confirm-modal/confirm-modal.component';
+import { Router } from '@angular/router';
 import {
   AddWorkspaceMemberRequest,
   ChatMessageDTO,
@@ -15,6 +16,7 @@ import {
   WorkspaceRole,
   WorkspaceType
 } from '../../models/workspace.model';
+import { RequirementSet, CreateRequirementSetRequest } from '../../models/requirement-set.model';
 
 type WorkspaceForm = {
   name: string;
@@ -31,6 +33,8 @@ type WorkspaceForm = {
 })
 export class WorkspacesComponent implements OnInit {
   private workspaceService = inject(WorkspaceService);
+  private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
   readonly authService = inject(AuthService);
 
   workspaces = this.workspaceService.workspaces;
@@ -41,7 +45,18 @@ export class WorkspacesComponent implements OnInit {
   saving = signal(false);
   error = signal<string | null>(null);
   analyticsError = signal<string | null>(null);
-  activeTab = signal<'details' | 'history' | 'ranking'>('details');
+  activeTab = signal<'details' | 'projects' | 'history' | 'ranking'>('details');
+
+  joinCodeInput = signal('');
+  joinLoading = signal(false);
+  copyFeedback = signal<string | null>(null);
+
+  /** Projetos (atividades) do workspace selecionado */
+  projects = signal<RequirementSet[]>([]);
+  projectsLoading = signal(false);
+  showProjectModal = signal(false);
+  newProjectName = signal('');
+  newProjectDescription = signal('');
 
   showWorkspaceModal = signal(false);
   editingWorkspace = signal<WorkspaceDTO | null>(null);
@@ -84,6 +99,15 @@ export class WorkspacesComponent implements OnInit {
     return role === 'OWNER' || role === 'ADMIN';
   });
   canViewAnalytics = computed(() => this.canManageMembers());
+  canCreateWorkspace = computed(() => this.authService.isAdmin());
+  canManageProjects = computed(() => {
+    const role = this.userWorkspaceRole();
+    return role === 'OWNER' || role === 'ADMIN';
+  });
+
+  messageTimestamp(m: ChatMessageDTO): string {
+    return m.askedAt || m.answeredAt || '';
+  }
 
   ngOnInit(): void {
     this.loadWorkspaces();
@@ -112,11 +136,103 @@ export class WorkspacesComponent implements OnInit {
     this.analyticsError.set(null);
     this.history.set([]);
     this.ranking.set([]);
+    this.loadWorkspaceProjects();
 
     if (this.canViewAnalytics()) {
       this.loadHistory();
       this.loadRanking();
     }
+  }
+
+  loadWorkspaceProjects(): void {
+    const w = this.selectedWorkspace();
+    if (!w) {
+      this.projects.set([]);
+      return;
+    }
+    this.projectsLoading.set(true);
+    this.workspaceService.listRequirementSets(w.id).subscribe({
+      next: (list) => {
+        this.projects.set(list);
+        this.projectsLoading.set(false);
+      },
+      error: () => {
+        this.projects.set([]);
+        this.projectsLoading.set(false);
+      }
+    });
+  }
+
+  openCreateProjectModal(): void {
+    this.newProjectName.set('');
+    this.newProjectDescription.set('');
+    this.error.set(null);
+    this.showProjectModal.set(true);
+  }
+
+  closeProjectModal(): void {
+    this.showProjectModal.set(false);
+  }
+
+  createProjectInWorkspace(): void {
+    const w = this.selectedWorkspace();
+    if (!w || !this.newProjectName().trim()) {
+      this.error.set('Nome do projeto é obrigatório');
+      return;
+    }
+    this.saving.set(true);
+    this.error.set(null);
+    const body: CreateRequirementSetRequest = {
+      name: this.newProjectName().trim(),
+      description: this.newProjectDescription().trim()
+    };
+    this.workspaceService.createRequirementSet(w.id, body).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.closeProjectModal();
+        this.loadWorkspaceProjects();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao criar projeto'));
+      }
+    });
+  }
+
+  goToProject(project: RequirementSet): void {
+    this.router.navigate(this.authService.isAdmin() ? ['/admin/projects', project.id] : ['/chatbot']);
+  }
+
+  joinByCode(): void {
+    const code = this.joinCodeInput().trim();
+    if (!code) {
+      this.error.set('Digite o código de convite');
+      return;
+    }
+    this.joinLoading.set(true);
+    this.error.set(null);
+    this.workspaceService.joinByInviteCode(code).subscribe({
+      next: () => {
+        this.joinLoading.set(false);
+        this.joinCodeInput.set('');
+        this.loadWorkspaces();
+      },
+      error: (err) => {
+        this.joinLoading.set(false);
+        this.error.set(this.getUserFriendlyError(err, 'Código inválido ou não foi possível entrar'));
+      }
+    });
+  }
+
+  copyInviteCode(code: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    navigator.clipboard.writeText(code).then(
+      () => {
+        this.copyFeedback.set('Copiado!');
+        setTimeout(() => this.copyFeedback.set(null), 2000);
+      },
+      () => this.copyFeedback.set('Não foi possível copiar')
+    );
   }
 
   openCreateWorkspaceModal(): void {
@@ -311,9 +427,12 @@ export class WorkspacesComponent implements OnInit {
     this.loadRanking();
   }
 
-  setActiveTab(tab: 'details' | 'history' | 'ranking'): void {
+  setActiveTab(tab: 'details' | 'projects' | 'history' | 'ranking'): void {
     this.activeTab.set(tab);
 
+    if (tab === 'projects') {
+      this.loadWorkspaceProjects();
+    }
     if (!this.canViewAnalytics()) return;
     if (tab === 'history' && this.history().length === 0) this.loadHistory();
     if (tab === 'ranking' && this.ranking().length === 0) this.loadRanking();

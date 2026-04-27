@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { RequirementSetService } from '../../../services/requirement-set.service';
+import { forkJoin } from 'rxjs';
+import { WorkspaceService } from '../../../services/workspace.service';
 import { RequirementService } from '../../../services/requirement.service';
 import { RequirementSet } from '../../../models/requirement-set.model';
 import { Requirement } from '../../../models/requirement.model';
@@ -14,14 +15,13 @@ import { Requirement } from '../../../models/requirement.model';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
+  private workspaceService = inject(WorkspaceService);
+  private requirementService = inject(RequirementService);
+
   projects = signal<RequirementSet[]>([]);
   recentRequirements = signal<Requirement[]>([]);
   loading = signal(true);
-
-  constructor(
-    private projectService: RequirementSetService,
-    private requirementService: RequirementService
-  ) {}
+  workspaceCount = signal(0);
 
   ngOnInit(): void {
     this.loadData();
@@ -29,14 +29,31 @@ export class DashboardComponent implements OnInit {
 
   loadData(): void {
     this.loading.set(true);
-    this.projectService.getAll().subscribe({
-      next: (projects) => {
-        this.projects.set(projects.slice(0, 5));
-        this.loadRequirements();
+    this.workspaceService.loadWorkspaces().subscribe({
+      next: (workspaces) => {
+        this.workspaceCount.set(workspaces.length);
+        if (workspaces.length === 0) {
+          this.projects.set([]);
+          this.recentRequirements.set([]);
+          this.loading.set(false);
+          return;
+        }
+        forkJoin(
+          workspaces.map(w =>
+            this.workspaceService.listRequirementSets(w.id)
+          )
+        ).subscribe({
+          next: (arrays) => {
+            const flat = (arrays as RequirementSet[][]).flat();
+            this.projects.set(flat.slice(0, 5));
+            this.loadRequirements();
+          },
+          error: () => {
+            this.loading.set(false);
+          }
+        });
       },
-      error: (err) => {
-        this.loading.set(false);
-      }
+      error: () => this.loading.set(false)
     });
   }
 
@@ -46,7 +63,7 @@ export class DashboardComponent implements OnInit {
         this.recentRequirements.set(requirements.slice(0, 5));
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.loading.set(false);
       }
     });

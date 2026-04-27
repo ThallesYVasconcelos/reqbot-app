@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RequirementService } from '../../../services/requirement.service';
-import { RequirementSetService } from '../../../services/requirement-set.service';
+import { WorkspaceService } from '../../../services/workspace.service';
+import { WorkspaceDTO } from '../../../models/workspace.model';
 import { Requirement, RequirementHistory, CreateRequirementRequest, UpdateRequirementRequest, SaveRequirementRequest, RequirementReport } from '../../../models/requirement.model';
 import { RequirementSet } from '../../../models/requirement-set.model';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal.component';
@@ -37,9 +38,12 @@ export class RequirementsComponent implements OnInit {
   report = signal<RequirementReport | null>(null);
   reportLoading = signal(false);
 
+  workspaceList = signal<WorkspaceDTO[]>([]);
+  selectedWorkspaceId = signal<string>('');
+
   constructor(
     private requirementService: RequirementService,
-    private projectService: RequirementSetService,
+    private workspaceService: WorkspaceService,
     private route: ActivatedRoute
   ) {}
 
@@ -48,23 +52,54 @@ export class RequirementsComponent implements OnInit {
     const projectId = params['projectId'];
     const openCreate = params['create'] === 'true';
 
-    this.projectService.getAll().subscribe({
+    this.workspaceService.loadWorkspaces().subscribe({
+      next: (workspaces) => {
+        this.workspaceList.set(workspaces);
+        if (workspaces.length === 0) {
+          this.error.set('Crie um workspace e projetos para gerir requisitos.');
+          return;
+        }
+        const wsId = workspaces[0].id;
+        this.selectedWorkspaceId.set(wsId);
+        this.loadProjectsForWorkspace(wsId, projectId, openCreate);
+      },
+      error: (err) => {
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar workspaces'));
+      }
+    });
+  }
+
+  onWorkspaceChange(workspaceId: string): void {
+    this.selectedWorkspaceId.set(workspaceId);
+    this.selectedProjectId.set('');
+    this.loadProjectsForWorkspace(workspaceId, undefined, false);
+  }
+
+  private loadProjectsForWorkspace(
+    workspaceId: string,
+    preferProjectId: string | undefined,
+    openCreate: boolean
+  ): void {
+    this.workspaceService.listRequirementSets(workspaceId).subscribe({
       next: (projects) => {
         this.projects.set(projects);
         if (projects.length > 0) {
-          if (projectId && projects.some(p => p.id === projectId)) {
-            this.selectedProjectId.set(projectId);
-          } else if (!this.selectedProjectId()) {
+          if (preferProjectId && projects.some(p => p.id === preferProjectId)) {
+            this.selectedProjectId.set(preferProjectId);
+          } else {
             this.selectedProjectId.set(projects[0].id);
           }
           this.loadRequirements();
           if (openCreate && this.selectedProjectId()) {
             setTimeout(() => this.openCreateModal(), 200);
           }
+        } else {
+          this.selectedProjectId.set('');
+          this.requirements.set([]);
         }
       },
       error: (err) => {
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar projetos'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar projetos do workspace'));
       }
     });
   }

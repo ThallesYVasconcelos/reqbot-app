@@ -6,25 +6,45 @@
         Organize projetos, membros e analytics do Reqbot por workspace.
       </p>
     </div>
-    <div class="flex items-center gap-3">
-      @if (!authService.isAdmin()) {
-        <a routerLink="/chatbot" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg">
-          Ir para o chat
-        </a>
+    <div class="flex flex-wrap items-center gap-3">
+      <a routerLink="/chatbot" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg">
+        Ir para o chat
+      </a>
+      @if (canCreateWorkspace()) {
+        <button
+          (click)="openCreateWorkspaceModal()"
+          class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+        >
+          + Novo Workspace
+        </button>
       }
-      <button
-        (click)="openCreateWorkspaceModal()"
-        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
-      >
-        + Novo Workspace
-      </button>
     </div>
   </div>
 
-  <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-    Projetos ainda usam <strong>POST /api/requirement-sets</strong> sem workspaceId. Para multi-tenancy completo,
-    o backend ainda precisa vincular criação/listagem de projetos ao workspace.
+  <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-end p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div class="flex-1">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Entrar com código de convite</label>
+      <input
+        type="text"
+        [ngModel]="joinCodeInput()"
+        (ngModelChange)="joinCodeInput.set($event)"
+        placeholder="Ex: AB3K9ZXQ"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg uppercase tracking-wider font-mono"
+        maxlength="12"
+      />
+    </div>
+    <button
+      type="button"
+      (click)="joinByCode()"
+      [disabled]="joinLoading()"
+      class="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg disabled:opacity-50"
+    >
+      {{ joinLoading() ? 'Entrando…' : 'Entrar no workspace' }}
+    </button>
   </div>
+  @if (copyFeedback()) {
+    <p class="text-sm text-green-700">{{ copyFeedback() }}</p>
+  }
 
   @if (error()) {
     <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
@@ -51,12 +71,16 @@
       <p class="text-gray-600 mt-2 max-w-xl mx-auto">
         Workspaces agrupam membros, histórico do chat e ranking anônimo de perguntas.
       </p>
-      <button
-        (click)="openCreateWorkspaceModal()"
-        class="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
-      >
-        Criar Workspace
-      </button>
+      @if (canCreateWorkspace()) {
+        <button
+          (click)="openCreateWorkspaceModal()"
+          class="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+        >
+          Criar Workspace
+        </button>
+      } @else {
+        <p class="mt-4 text-sm text-gray-500">Peça a um administrador o código de convite para entrar em um workspace.</p>
+      }
     </div>
   } @else {
     <div class="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-6">
@@ -100,6 +124,17 @@
                   }
                 </div>
                 <p class="text-sm text-gray-500 mt-1">{{ typeLabel(workspace.type) }} · Dono: {{ workspace.ownerEmail }}</p>
+                <div class="mt-3 flex flex-wrap items-center gap-2">
+                  <span class="text-sm text-gray-600">Código de convite:</span>
+                  <code class="px-2 py-1 bg-gray-100 rounded font-mono text-sm">{{ workspace.inviteCode }}</code>
+                  <button
+                    type="button"
+                    (click)="copyInviteCode(workspace.inviteCode || '')"
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Copiar código
+                  </button>
+                </div>
                 <p class="text-gray-700 mt-4 whitespace-pre-wrap">{{ workspace.description || 'Sem descrição.' }}</p>
               </div>
               <div class="flex flex-wrap gap-2">
@@ -134,6 +169,16 @@
                 [class.hover:bg-gray-100]="activeTab() !== 'details'"
               >
                 Membros
+              </button>
+              <button
+                (click)="setActiveTab('projects')"
+                class="px-4 py-2 rounded-lg text-sm font-medium"
+                [class.bg-gray-900]="activeTab() === 'projects'"
+                [class.text-white]="activeTab() === 'projects'"
+                [class.text-gray-700]="activeTab() !== 'projects'"
+                [class.hover:bg-gray-100]="activeTab() !== 'projects'"
+              >
+                Projetos
               </button>
               <button
                 (click)="setActiveTab('history')"
@@ -230,6 +275,49 @@
                 </div>
               }
 
+              @if (activeTab() === 'projects') {
+                <div class="space-y-4">
+                  @if (canManageProjects()) {
+                    <div class="flex justify-end">
+                      <button
+                        (click)="openCreateProjectModal()"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                      >
+                        + Novo projeto (atividade)
+                      </button>
+                    </div>
+                  }
+                  @if (projectsLoading()) {
+                    <p class="text-gray-500">Carregando projetos…</p>
+                  } @else if (projects().length === 0) {
+                    <p class="text-gray-600">Nenhum projeto neste workspace. Crie um para vincular requisitos e ao chatbot.</p>
+                  } @else {
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                      <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-700">Nome</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-700">Descrição</th>
+                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-700">Ação</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (p of projects(); track p.id) {
+                            <tr class="hover:bg-gray-50">
+                              <td class="px-4 py-2 text-sm font-medium text-gray-900">{{ p.name }}</td>
+                              <td class="px-4 py-2 text-sm text-gray-600 max-w-md truncate" [title]="p.description">{{ p.description || '—' }}</td>
+                              <td class="px-4 py-2 text-right">
+                                <button type="button" (click)="goToProject(p)" class="text-blue-600 text-sm hover:underline">Abrir</button>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              }
+
               @if (activeTab() === 'history') {
                 @if (!canViewAnalytics()) {
                   <p class="text-gray-600">Sem permissão para ver analytics deste workspace</p>
@@ -252,7 +340,7 @@
                         <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
                           <div class="flex flex-wrap items-center justify-between gap-2">
                             <p class="font-semibold text-gray-900">{{ message.question }}</p>
-                            <span class="text-xs text-gray-500">{{ message.askedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                            <span class="text-xs text-gray-500">{{ messageTimestamp(message) | date:'dd/MM/yyyy HH:mm' }}</span>
                           </div>
                           <p class="text-sm text-gray-600 mt-1">
                             {{ message.userEmail || 'Usuário anônimo' }}
@@ -377,6 +465,38 @@
       (confirm)="confirmDeleteWorkspace()"
       (cancel)="closeDeleteWorkspaceModal()"
     />
+  }
+
+  @if (showProjectModal()) {
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Novo projeto no workspace</h2>
+        @if (error()) {
+          <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{{ error() }}</div>
+        }
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+        <input
+          [ngModel]="newProjectName()"
+          (ngModelChange)="newProjectName.set($event)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3"
+        />
+        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+        <textarea
+          [ngModel]="newProjectDescription()"
+          (ngModelChange)="newProjectDescription.set($event)"
+          rows="3"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4"
+        ></textarea>
+        <div class="flex justify-end gap-2">
+          <button (click)="closeProjectModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg">Cancelar</button>
+          <button
+            (click)="createProjectInWorkspace()"
+            [disabled]="saving()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+          >{{ saving() ? 'Criando…' : 'Criar' }}</button>
+        </div>
+      </div>
+    </div>
   }
 
   @if (showWorkspaceModal()) {

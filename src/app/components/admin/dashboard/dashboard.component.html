@@ -1,11 +1,15 @@
 <div class="space-y-6">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
+      <h3 class="text-sm font-medium text-gray-600 mb-2">Workspaces</h3>
+      <p class="text-3xl font-bold text-indigo-600">{{ workspaceCount() }}</p>
+    </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-400">
-      <h3 class="text-sm font-medium text-gray-600 mb-2">Total de Projetos</h3>
+      <h3 class="text-sm font-medium text-gray-600 mb-2">Amostra de projetos</h3>
       <p class="text-3xl font-bold text-blue-400">{{ projects().length }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-      <h3 class="text-sm font-medium text-gray-600 mb-2">Total de Requisitos</h3>
+      <h3 class="text-sm font-medium text-gray-600 mb-2">Requisitos (amostra)</h3>
       <p class="text-3xl font-bold text-green-600">{{ getRequirementCount() }}</p>
     </div>
   </div>

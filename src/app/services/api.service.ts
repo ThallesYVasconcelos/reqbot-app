@@ -37,9 +37,10 @@ export class ApiService {
     });
   }
 
-  post<T>(endpoint: string, body: any = null): Observable<T> {
+  post<T>(endpoint: string, body: any = null, params?: HttpParams): Observable<T> {
     return this.http.post<T>(`${this.baseUrl}${endpoint}`, body || {}, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
+      params
     });
   }
 

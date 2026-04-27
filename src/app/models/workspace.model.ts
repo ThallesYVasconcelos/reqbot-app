@@ -14,6 +14,8 @@ export interface WorkspaceDTO {
   description: string | null;
   type: WorkspaceType;
   ownerEmail: string;
+  /** Código de convite (8 caracteres), gerado ao criar o workspace */
+  inviteCode?: string;
   members: WorkspaceMemberDTO[];
   createdAt: string;
   updatedAt: string;
@@ -43,7 +45,9 @@ export interface ChatMessageDTO {
   answer: string | null;
   answeredFromCache: boolean;
   chatbotAvailable: boolean;
-  askedAt: string;
+  /** Instantâneo da pergunta/resposta (backend pode enviar askedAt ou answeredAt) */
+  askedAt?: string;
+  answeredAt?: string;
   requirementSetId: string | null;
   requirementSetName: string | null;
   workspaceId: string | null;

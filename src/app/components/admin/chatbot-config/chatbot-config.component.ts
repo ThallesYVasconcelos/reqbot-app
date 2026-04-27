@@ -1,8 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatbotService } from '../../../services/chatbot.service';
-import { RequirementSetService } from '../../../services/requirement-set.service';
+import { WorkspaceService } from '../../../services/workspace.service';
 import { ChatbotConfig, CreateChatbotConfigRequest } from '../../../models/chatbot.model';
 import { RequirementSet } from '../../../models/requirement-set.model';
 
@@ -14,8 +14,13 @@ import { RequirementSet } from '../../../models/requirement-set.model';
   styleUrl: './chatbot-config.component.css'
 })
 export class ChatbotConfigComponent implements OnInit {
+  private workspaceService = inject(WorkspaceService);
+  private chatbotService = inject(ChatbotService);
+
+  workspaces = this.workspaceService.workspaces;
   activeConfig = signal<ChatbotConfig | null>(null);
   projects = signal<RequirementSet[]>([]);
+  selectedWorkspaceId = signal<string>('');
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -25,31 +30,46 @@ export class ChatbotConfigComponent implements OnInit {
   isActive = signal(true);
   showRequirementsToUsers = signal(false);
 
-  constructor(
-    private chatbotService: ChatbotService,
-    private projectService: RequirementSetService
-  ) {}
-
   ngOnInit(): void {
-    this.loadProjects();
-    this.loadActiveConfig();
-  }
-
-  loadProjects(): void {
-    this.projectService.getAll().subscribe({
-      next: (projects) => this.projects.set(projects),
-      error: () => {}
+    this.loading.set(true);
+    this.workspaceService.loadWorkspaces().subscribe({
+      next: (list) => {
+        this.loading.set(false);
+        if (list.length > 0) {
+          const first = this.workspaceService.selectedWorkspaceId() || list[0].id;
+          this.selectedWorkspaceId.set(first);
+          this.workspaceService.selectWorkspace(first);
+          this.onWorkspaceChange(first);
+        }
+      },
+      error: () => this.loading.set(false)
     });
   }
 
-  loadActiveConfig(): void {
+  onWorkspaceChange(workspaceId: string): void {
+    if (!workspaceId) return;
+    this.selectedWorkspaceId.set(workspaceId);
+    this.workspaceService.selectWorkspace(workspaceId);
+    this.error.set(null);
+    this.loadProjectsForWorkspace(workspaceId);
+    this.loadActiveConfigForWorkspace(workspaceId);
+  }
+
+  private loadProjectsForWorkspace(workspaceId: string): void {
+    this.workspaceService.listRequirementSets(workspaceId).subscribe({
+      next: (projects) => this.projects.set(projects),
+      error: () => this.projects.set([])
+    });
+  }
+
+  loadActiveConfigForWorkspace(workspaceId: string): void {
     this.loading.set(true);
-    this.chatbotService.getActiveConfig().subscribe({
+    this.chatbotService.getWorkspaceActiveConfig(workspaceId).subscribe({
       next: (config) => {
         this.activeConfig.set(config);
         this.selectedProjectId.set(config.requirementSetId);
-        this.startTime.set(config.startTime || '');
-        this.endTime.set(config.endTime || '');
+        this.startTime.set((config.startTime || '').slice(0, 5));
+        this.endTime.set((config.endTime || '').slice(0, 5));
         this.isActive.set(config.isActive);
         this.showRequirementsToUsers.set(config.showRequirementsToUsers ?? false);
         this.loading.set(false);
@@ -58,7 +78,7 @@ export class ChatbotConfigComponent implements OnInit {
         if (err.status === 404) {
           this.activeConfig.set(null);
         } else {
-          this.error.set(err.error?.message || 'Erro ao carregar configuração');
+          this.error.set(err.error?.message || 'Erro ao carregar configuração do workspace');
         }
         this.loading.set(false);
       }
@@ -66,6 +86,11 @@ export class ChatbotConfigComponent implements OnInit {
   }
 
   saveConfig(): void {
+    const workspaceId = this.selectedWorkspaceId();
+    if (!workspaceId) {
+      this.error.set('Selecione um workspace');
+      return;
+    }
     if (!this.selectedProjectId()) {
       this.error.set('Selecione um projeto');
       return;
@@ -80,12 +105,12 @@ export class ChatbotConfigComponent implements OnInit {
       showRequirementsToUsers: this.showRequirementsToUsers()
     };
 
-    this.chatbotService.createConfig(request).subscribe({
+    this.chatbotService.createWorkspaceConfig(workspaceId, request).subscribe({
       next: (config) => {
         this.activeConfig.set(config);
         this.selectedProjectId.set(config.requirementSetId);
-        this.startTime.set(config.startTime || '');
-        this.endTime.set(config.endTime || '');
+        this.startTime.set((config.startTime || '').slice(0, 5));
+        this.endTime.set((config.endTime || '').slice(0, 5));
         this.isActive.set(config.isActive);
         this.showRequirementsToUsers.set(config.showRequirementsToUsers ?? false);
         this.loading.set(false);
@@ -93,30 +118,6 @@ export class ChatbotConfigComponent implements OnInit {
       },
       error: (err) => {
         this.error.set(err.error?.message || 'Erro ao salvar configuração');
-        this.loading.set(false);
-      }
-    });
-  }
-
-  toggleActive(): void {
-    const config = this.activeConfig();
-    if (!config) {
-      this.error.set('Nenhuma configuração encontrada');
-      return;
-    }
-
-    this.loading.set(true);
-    this.error.set(null);
-    
-    this.chatbotService.toggleConfig(config.id, !config.isActive).subscribe({
-      next: (updatedConfig) => {
-        this.activeConfig.set(updatedConfig);
-        this.isActive.set(updatedConfig.isActive);
-        this.loading.set(false);
-        this.error.set(null);
-      },
-      error: (err) => {
-        this.error.set(err.error?.message || err.message || 'Erro ao alterar status');
         this.loading.set(false);
       }
     });

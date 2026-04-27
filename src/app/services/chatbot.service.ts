@@ -5,10 +5,9 @@ import { ApiService } from './api.service';
 import {
   ChatbotConfig,
   CreateChatbotConfigRequest,
-  ChatResponse,
+  WorkspaceChatResponse,
   ChatRequest
 } from '../models/chatbot.model';
-import { Requirement } from '../models/requirement.model';
 import { ChatMessageDTO } from '../models/workspace.model';
 
 @Injectable({
@@ -17,7 +16,7 @@ import { ChatMessageDTO } from '../models/workspace.model';
 export class ChatbotService {
   constructor(private api: ApiService) {}
 
-  // Admin endpoints
+  // --- Config global (legada, admin) ---
   createConfig(request: CreateChatbotConfigRequest): Observable<ChatbotConfig> {
     return this.api.post<ChatbotConfig>('/api/admin/chatbot/config', request);
   }
@@ -43,34 +42,25 @@ export class ChatbotService {
     return this.api.delete<void>(`/api/admin/chatbot/config/${id}`);
   }
 
-  // User endpoints
-  askQuestion(request: ChatRequest): Observable<ChatResponse> {
-    return this.api.post<ChatResponse>('/api/chatbot/ask', request);
+  // --- Config por workspace ---
+  getWorkspaceActiveConfig(workspaceId: string): Observable<ChatbotConfig> {
+    return this.api.get<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbot/config/active`);
   }
 
-  getMyHistory(): Observable<ChatMessageDTO[]> {
-    return this.api.get<ChatMessageDTO[]>('/api/chatbot/history/me');
+  createWorkspaceConfig(workspaceId: string, request: CreateChatbotConfigRequest): Observable<ChatbotConfig> {
+    return this.api.post<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbot/config`, request);
   }
 
-  getProjectHistory(requirementSetId: string): Observable<ChatMessageDTO[]> {
-    return this.api.get<ChatMessageDTO[]>(
-      `/api/chatbot/history/project/${requirementSetId}`
-    );
+  getWorkspaceConfigs(workspaceId: string): Observable<ChatbotConfig[]> {
+    return this.api.get<ChatbotConfig[]>(`/api/workspaces/${workspaceId}/chatbot/config`);
   }
 
-  getRequirementSet(): Observable<{ id: string; name: string; description?: string }> {
-    return this.api.get<{ id: string; name: string; description?: string }>('/api/user/chatbot/requirement-set');
+  // --- Chat por workspace ---
+  askInWorkspace(workspaceId: string, request: ChatRequest): Observable<WorkspaceChatResponse> {
+    return this.api.post<WorkspaceChatResponse>(`/api/workspaces/${workspaceId}/chat/ask`, request);
   }
 
-  getRequirements(): Observable<Requirement[]> {
-    return this.api.get<Requirement[]>('/api/user/chatbot/requirements/approved');
-  }
-
-  getSchedule(): Observable<{ startTime: string | null; endTime: string | null; available24h: boolean; showRequirementsToUsers?: boolean }> {
-    return this.api.get<{ startTime: string | null; endTime: string | null; available24h: boolean; showRequirementsToUsers?: boolean }>('/api/user/chatbot/schedule');
-  }
-
-  getAvailability(): Observable<boolean> {
-    return this.api.get<boolean>('/api/user/chatbot/availability');
+  getMyChatHistoryInWorkspace(workspaceId: string): Observable<ChatMessageDTO[]> {
+    return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${workspaceId}/chat/history/me`);
   }
 }

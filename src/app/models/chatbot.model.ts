@@ -3,6 +3,8 @@ export interface ChatbotConfig {
   isActive: boolean;
   requirementSetId: string;
   requirementSetName: string;
+  workspaceId: string;
+  workspaceName: string;
   startTime: string | null;
   endTime: string | null;
   showRequirementsToUsers?: boolean;
@@ -12,20 +14,22 @@ export interface ChatbotConfig {
   isAvailable?: boolean;
 }
 
+/** Corpo de POST /api/workspaces/{id}/chatbot/config (e config global legada) */
 export interface CreateChatbotConfigRequest {
   requirementSetId: string;
   startTime?: string | null;
   endTime?: string | null;
-  isActive: boolean;
+  isActive?: boolean;
   showRequirementsToUsers?: boolean;
 }
 
-export interface ChatResponse {
+/** Resposta de POST /api/workspaces/{id}/chat/ask */
+export interface WorkspaceChatResponse {
   answer: string;
   question: string;
-  timestamp: string;
-  success: boolean;
-  isAvailable: boolean;
+  answeredAt: string;
+  answeredFromCache: boolean;
+  chatbotAvailable: boolean;
 }
 
 export interface ChatRequest {

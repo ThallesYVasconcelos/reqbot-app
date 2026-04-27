@@ -11,6 +11,7 @@ import {
   UpdateWorkspaceRequest,
   WorkspaceDTO
 } from '../models/workspace.model';
+import { CreateRequirementSetRequest, RequirementSet } from '../models/requirement-set.model';
 
 const SELECTED_WORKSPACE_KEY = 'selectedWorkspaceId';
 
@@ -88,8 +89,28 @@ export class WorkspaceService {
     );
   }
 
+  /** Aluno entra no workspace com código de convite */
+  joinByInviteCode(code: string): Observable<WorkspaceDTO> {
+    const params = new HttpParams().set('code', code.trim().toUpperCase());
+    return this.api.post<WorkspaceDTO>('/api/workspaces/join', {}, params).pipe(
+      tap(ws => {
+        this.workspacesState.update(list => (list.some(w => w.id === ws.id) ? list : [ws, ...list]));
+        this.selectWorkspace(ws.id);
+      })
+    );
+  }
+
+  listRequirementSets(workspaceId: string): Observable<RequirementSet[]> {
+    return this.api.get<RequirementSet[]>(`/api/workspaces/${workspaceId}/requirement-sets`);
+  }
+
+  createRequirementSet(workspaceId: string, body: CreateRequirementSetRequest): Observable<RequirementSet> {
+    return this.api.post<RequirementSet>(`/api/workspaces/${workspaceId}/requirement-sets`, body);
+  }
+
+  /** Histórico completo (Owner/Admin) */
   getChatHistory(id: string): Observable<ChatMessageDTO[]> {
-    return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${id}/chat-history`);
+    return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${id}/chat/history`);
   }
 
   getQuestionRanking(
