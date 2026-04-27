@@ -59,8 +59,11 @@ export class RequirementsComponent implements OnInit {
           this.error.set('Crie um workspace e projetos para gerir requisitos.');
           return;
         }
-        const wsId = workspaces[0].id;
+        const stored = this.workspaceService.selectedWorkspaceId();
+        const wsId =
+          stored && workspaces.some(w => w.id === stored) ? stored : workspaces[0].id;
         this.selectedWorkspaceId.set(wsId);
+        this.workspaceService.selectWorkspace(wsId);
         this.loadProjectsForWorkspace(wsId, projectId, openCreate);
       },
       error: (err) => {

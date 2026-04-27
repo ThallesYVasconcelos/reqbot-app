@@ -104,6 +104,8 @@ export class WorkspacesComponent implements OnInit {
     const role = this.userWorkspaceRole();
     return role === 'OWNER' || role === 'ADMIN';
   });
+  /** Membros comuns não veem gestão do workspace (convite, abas, analytics). */
+  isMemberOnly = computed(() => this.userWorkspaceRole() === 'MEMBER');
 
   messageTimestamp(m: ChatMessageDTO): string {
     return m.askedAt || m.answeredAt || '';
@@ -148,6 +150,11 @@ export class WorkspacesComponent implements OnInit {
     const w = this.selectedWorkspace();
     if (!w) {
       this.projects.set([]);
+      return;
+    }
+    if (this.userWorkspaceRole() === 'MEMBER') {
+      this.projects.set([]);
+      this.projectsLoading.set(false);
       return;
     }
     this.projectsLoading.set(true);

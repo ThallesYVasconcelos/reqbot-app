@@ -1,19 +1,22 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Sidebar -->
-  <aside 
-    class="fixed left-0 top-0 h-full w-64 bg-gray-900 text-white shadow-lg z-40 transition-transform duration-300 lg:translate-x-0"
+  <aside
+    class="fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-gray-800 bg-gray-900 text-white shadow-lg transition-transform duration-300 ease-out lg:max-h-screen"
     [class.-translate-x-full]="!showMenu()"
     [class.translate-x-0]="showMenu()"
+    [attr.aria-hidden]="!showMenu() ? 'true' : 'false'"
   >
-    <div class="p-6">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold">Requirements AI</h2>
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
+      <div class="mb-6 flex items-center justify-between gap-2">
+        <h2 class="text-xl font-bold leading-tight sm:text-2xl">Requirements AI</h2>
         <button
+          type="button"
           (click)="toggleMenu()"
-          class="lg:hidden text-gray-300 hover:text-white"
+          class="shrink-0 rounded-lg p-2 text-gray-300 hover:bg-gray-800 hover:text-white lg:hidden"
+          aria-label="Fechar menu"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -68,16 +71,6 @@
           </svg>
           Chatbot
         </a>
-        <a
-          routerLink="/admin/users"
-          routerLinkActive="bg-gray-800"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-          </svg>
-          Usuários
-        </a>
         <div class="border-t border-gray-700 my-4"></div>
         <a
           [routerLink]="['/chatbot']"
@@ -95,27 +88,41 @@
   </aside>
 
   @if (showMenu()) {
-    <div 
-      class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+    <div
+      class="fixed inset-0 z-30 bg-black/50 transition-opacity duration-200 lg:hidden"
       (click)="toggleMenu()"
+      role="presentation"
     ></div>
   }
 
   <!-- Main Content -->
-  <div class="lg:ml-64">
+  <div
+    class="min-h-screen transition-[margin] duration-300 ease-out"
+    [class.lg:ml-64]="showMenu()"
+  >
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-300">
-      <div class="px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+    <header
+      class="sticky top-0 z-20 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80"
+    >
+      <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-4">
           <button
+            type="button"
             (click)="toggleMenu()"
-            class="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            class="shrink-0 rounded-lg p-2 text-gray-700 hover:bg-gray-100"
+            [attr.aria-expanded]="showMenu()"
+            [attr.aria-label]="showMenu() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
-          <h1 class="text-2xl font-semibold text-gray-900">Painel Administrativo</h1>
+          <h1 class="truncate text-lg font-semibold text-gray-900 sm:text-2xl">Painel Administrativo</h1>
         </div>
         <div class="flex items-center gap-4">
           <span class="text-sm text-gray-700">{{ authService.user()?.name }}</span>
