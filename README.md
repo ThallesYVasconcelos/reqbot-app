@@ -62,7 +62,7 @@ Edite `src/environments/environment.ts`:
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8081',  // URL do backend
+  apiUrl: 'https://reqbot-lln3.onrender.com',  // URL do backend
   googleClientId: 'SEU_CLIENT_ID.apps.googleusercontent.com'
 };
 ```
@@ -73,7 +73,7 @@ Para produção, configure `src/environments/environment.production.ts` e ajuste
 
 1. Crie um projeto no [Google Cloud Console](https://console.cloud.google.com)
 2. Configure OAuth 2.0 com credenciais para aplicativo web
-3. Adicione as origens autorizadas (ex: `http://localhost:4200`, `http://localhost:8081`)
+3. Adicione as origens autorizadas (ex: `http://localhost:4200`, `https://reqbot-lln3.onrender.com`)
 
 ## Comandos
 
