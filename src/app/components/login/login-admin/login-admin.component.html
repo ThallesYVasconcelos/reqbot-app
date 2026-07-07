@@ -8,6 +8,7 @@
   </div>
 } @else {
   <div class="auth-content">
+    <p class="auth-hint">Acesso para criar espaços, aceitar convite de admin e gerenciar projetos.</p>
     <div id="google-signin-button-admin" class="google-button-container"></div>
     @if (error()) {
       <p class="auth-error">{{ error() }}</p>
@@ -15,7 +16,7 @@
     @if (!googleAvailable()) {
       <p class="auth-hint">Carregando Google OAuth...</p>
     } @else {
-      <p class="auth-security">Seus dados estão protegidos com criptografia de ponta a ponta</p>
+      <p class="auth-security">Depois do login, crie um espaço ou cole o token recebido.</p>
     }
   </div>
 }

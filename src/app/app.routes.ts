@@ -1,19 +1,19 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
+import { chatbotGuard, managerGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent),
     children: [
-      { path: '', redirectTo: 'user', pathMatch: 'full' },
-      { path: 'admin', loadComponent: () => import('./components/login/login-user/login-user.component').then(m => m.LoginUserComponent) },
+      { path: '', redirectTo: 'admin', pathMatch: 'full' },
+      { path: 'admin', loadComponent: () => import('./components/login/login-admin/login-admin.component').then(m => m.LoginAdminComponent) },
       { path: 'user', loadComponent: () => import('./components/login/login-user/login-user.component').then(m => m.LoginUserComponent) }
     ]
   },
   {
     path: 'app',
-    canActivate: [authGuard],
+    canActivate: [managerGuard],
     loadComponent: () => import('./components/admin/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
       { path: 'spaces', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
@@ -31,12 +31,12 @@ export const routes: Routes = [
   },
   {
     path: 'chatbots/join',
-    canActivate: [authGuard],
+    canActivate: [chatbotGuard],
     loadComponent: () => import('./components/chatbot/chatbot.component').then(m => m.ChatbotComponent)
   },
   {
     path: 'chatbots/:chatbotId',
-    canActivate: [authGuard],
+    canActivate: [chatbotGuard],
     loadComponent: () => import('./components/chatbot/chatbot.component').then(m => m.ChatbotComponent)
   },
   {

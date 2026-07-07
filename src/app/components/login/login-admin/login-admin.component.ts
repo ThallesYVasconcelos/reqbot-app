@@ -25,7 +25,7 @@ export class LoginAdminComponent implements OnInit {
     private router: Router
   ) {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/app/spaces']);
+      this.router.navigate([this.authService.getSessionMode() === 'user' ? '/chatbots/join' : '/app/spaces']);
     }
   }
 
@@ -140,7 +140,7 @@ export class LoginAdminComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.authService.loginWithGoogle(credential).subscribe({
+    this.authService.loginAsAdmin(credential).subscribe({
       next: () => this.loading.set(false),
       error: (err) => {
         this.loading.set(false);

@@ -211,14 +211,14 @@ export class WorkspacesComponent implements OnInit {
   }
 
   joinByCode(): void {
-    const code = this.joinCodeInput().trim();
-    if (!code) {
-      this.error.set('Digite o código de convite');
+    const token = this.joinCodeInput().trim();
+    if (!token) {
+      this.error.set('Digite o token do convite de admin');
       return;
     }
     this.joinLoading.set(true);
     this.error.set(null);
-    this.workspaceService.joinByInviteCode(code).subscribe({
+    this.workspaceService.acceptAdminInvitation({ token }).subscribe({
       next: () => {
         this.joinLoading.set(false);
         this.joinCodeInput.set('');
@@ -226,7 +226,7 @@ export class WorkspacesComponent implements OnInit {
       },
       error: (err) => {
         this.joinLoading.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Código inválido ou não foi possível entrar'));
+        this.error.set(this.getUserFriendlyError(err, 'Token invalido ou convite de admin indisponivel'));
       }
     });
   }

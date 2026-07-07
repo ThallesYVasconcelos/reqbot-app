@@ -8,6 +8,7 @@
   </div>
 } @else {
   <div class="auth-content">
+    <p class="auth-hint">Acesso apenas para entrar em chatbots por código e fazer perguntas.</p>
     <div id="google-signin-button-user" class="google-button-container"></div>
     @if (error()) {
       <p class="auth-error">{{ error() }}</p>
@@ -15,7 +16,7 @@
     @if (!googleAvailable()) {
       <p class="auth-hint">Carregando Google OAuth...</p>
     } @else {
-      <p class="auth-security">Seus dados estão protegidos com criptografia de ponta a ponta</p>
+      <p class="auth-security">Você verá somente seus chatbots vinculados.</p>
     }
   </div>
 }

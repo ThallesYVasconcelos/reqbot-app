@@ -25,7 +25,7 @@ export class LoginUserComponent implements OnInit {
     private router: Router
   ) {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/app/spaces']);
+      this.router.navigate([this.authService.getSessionMode() === 'manager' ? '/app/spaces' : '/chatbots/join']);
     }
   }
 
@@ -138,7 +138,7 @@ export class LoginUserComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.authService.loginWithGoogle(credential).subscribe({
+    this.authService.loginAsUser(credential).subscribe({
       next: () => this.loading.set(false),
       error: (err) => {
         this.loading.set(false);

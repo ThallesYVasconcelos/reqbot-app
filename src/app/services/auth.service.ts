@@ -6,6 +6,9 @@ import { ApiService } from './api.service';
 import { WorkspaceService } from './workspace.service';
 import { AuthResponse, User } from '../models/auth.model';
 
+export type SessionMode = 'manager' | 'user';
+const SESSION_MODE_KEY = 'sessionMode';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,16 +28,17 @@ export class AuthService {
   }
 
   loginAsUser(idToken: string): Observable<AuthResponse> {
-    return this.loginWithGoogle(idToken);
+    return this.loginWithGoogle(idToken, 'user');
   }
 
   loginAsAdmin(idToken: string): Observable<AuthResponse> {
-    return this.loginWithGoogle(idToken);
+    return this.loginWithGoogle(idToken, 'manager');
   }
 
-  loginWithGoogle(idToken: string): Observable<AuthResponse> {
+  loginWithGoogle(idToken: string, mode: SessionMode = 'manager'): Observable<AuthResponse> {
+    this.setSessionMode(mode);
     return this.api.post<AuthResponse>('/api/auth/google', { idToken }).pipe(
-      tap(response => this.handleAuthResponse(response))
+      tap(response => this.handleAuthResponse(response, mode))
     );
   }
 
@@ -42,6 +46,7 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem(SESSION_MODE_KEY);
     }
     this.workspaceService.clearSelection();
     this.currentUser.set(null);
@@ -56,11 +61,11 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return false;
+    return this.getSessionMode() === 'manager';
   }
 
   isUser(): boolean {
-    return this.isAuthenticated();
+    return this.getSessionMode() === 'user';
   }
 
   getToken(): string | null {
@@ -70,7 +75,21 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  private handleAuthResponse(response: AuthResponse | any): void {
+  getSessionMode(): SessionMode | null {
+    if (!isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+    const mode = localStorage.getItem(SESSION_MODE_KEY);
+    return mode === 'manager' || mode === 'user' ? mode : null;
+  }
+
+  setSessionMode(mode: SessionMode): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(SESSION_MODE_KEY, mode);
+    }
+  }
+
+  private handleAuthResponse(response: AuthResponse | any, mode: SessionMode): void {
     const token =
       response?.token ||
       response?.accessToken ||
@@ -108,8 +127,8 @@ export class AuthService {
       if (!isPlatformBrowser(this.platformId)) return;
 
       this.workspaceService.loadWorkspaces().subscribe({
-        next: () => this.navigateAfterLogin('/app/spaces'),
-        error: () => this.navigateAfterLogin('/app/spaces')
+        next: () => this.navigateAfterLogin(mode === 'manager' ? '/app/spaces' : '/chatbots/join'),
+        error: () => this.navigateAfterLogin(mode === 'manager' ? '/app/spaces' : '/chatbots/join')
       });
     }, 100);
   }
