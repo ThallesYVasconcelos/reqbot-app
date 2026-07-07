@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import {
   ChatbotConfig,
+  ChatbotAccessCodeResponse,
   ChatRequest,
   CreateChatbotConfigRequest,
   JoinChatbotRequest,
@@ -34,6 +35,24 @@ export class ChatbotService {
     return this.api
       .get<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}`)
       .pipe(map(chatbot => this.normalizeChatbot(chatbot)));
+  }
+
+  getWorkspaceChatbotAccessCode(workspaceId: string, chatbotId: string): Observable<string | null> {
+    return this.api
+      .get<ChatbotAccessCodeResponse>(
+        `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/access-code`
+      )
+      .pipe(
+        map(response => {
+          const accessCode = this.firstText(
+            response?.accessCode,
+            response?.access_code,
+            response?.code,
+            response?.inviteCode
+          );
+          return accessCode || null;
+        })
+      );
   }
 
   toggleWorkspaceChatbot(workspaceId: string, chatbotId: string, active: boolean): Observable<ChatbotConfig> {

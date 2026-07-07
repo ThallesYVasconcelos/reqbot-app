@@ -27,6 +27,7 @@ export class ChatbotConfigComponent implements OnInit {
   saving = signal(false);
   deletingChatbotId = signal<string | null>(null);
   loadingCodeChatbotId = signal<string | null>(null);
+  revealedAccessCodes = signal<Record<string, string>>({});
   error = signal<string | null>(null);
   createdAccessCode = signal<string | null>(null);
 
@@ -64,6 +65,7 @@ export class ChatbotConfigComponent implements OnInit {
     this.workspaceService.selectWorkspace(workspaceId);
     this.error.set(null);
     this.createdAccessCode.set(null);
+    this.revealedAccessCodes.set({});
     this.loadProjectsForWorkspace(workspaceId);
     this.loadChatbots(workspaceId);
   }
@@ -132,6 +134,11 @@ export class ChatbotConfigComponent implements OnInit {
       next: () => {
         this.deletingChatbotId.set(null);
         this.chatbots.update(list => list.filter(item => item.id !== chatbot.id));
+        this.revealedAccessCodes.update(codes => {
+          const next = { ...codes };
+          delete next[chatbot.id];
+          return next;
+        });
       },
       error: (err) => {
         this.deletingChatbotId.set(null);
@@ -146,13 +153,14 @@ export class ChatbotConfigComponent implements OnInit {
 
     this.loadingCodeChatbotId.set(chatbot.id);
     this.error.set(null);
-    this.chatbotService.getWorkspaceChatbot(workspaceId, chatbot.id).subscribe({
-      next: (updated) => {
+    this.chatbotService.getWorkspaceChatbotAccessCode(workspaceId, chatbot.id).subscribe({
+      next: (accessCode) => {
         this.loadingCodeChatbotId.set(null);
-        this.chatbots.update(list => list.map(item => item.id === updated.id ? { ...item, ...updated } : item));
-        if (!updated.accessCode) {
-          this.error.set('Codigo de acesso nao foi retornado pela API.');
+        if (!accessCode) {
+          this.error.set('Codigo antigo nao disponivel. Crie um novo chatbot.');
+          return;
         }
+        this.revealedAccessCodes.update(codes => ({ ...codes, [chatbot.id]: accessCode }));
       },
       error: (err) => {
         this.loadingCodeChatbotId.set(null);
@@ -171,6 +179,10 @@ export class ChatbotConfigComponent implements OnInit {
 
   chatbotProjectLabel(chatbot: ChatbotConfig): string {
     return chatbot.requirementSetName || chatbot.requirementSetId || 'Projeto nao informado';
+  }
+
+  revealedAccessCode(chatbotId: string): string | null {
+    return this.revealedAccessCodes()[chatbotId] ?? null;
   }
 
   copyAccessCode(code: string): void {

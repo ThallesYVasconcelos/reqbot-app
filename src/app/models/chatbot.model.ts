@@ -41,6 +41,13 @@ export interface JoinChatbotRequest {
   code: string;
 }
 
+export interface ChatbotAccessCodeResponse {
+  accessCode: string | null;
+  access_code?: string | null;
+  code?: string | null;
+  inviteCode?: string | null;
+}
+
 export interface WorkspaceChatResponse {
   answer: string;
   question: string;

@@ -67,7 +67,7 @@
           <code class="rounded-lg bg-white px-3 py-2 font-mono text-lg font-semibold text-blue-900">{{ createdAccessCode() }}</code>
           <button type="button" (click)="copyAccessCode(createdAccessCode()!)" class="text-sm font-medium text-blue-700 hover:text-blue-900">Copiar</button>
         </div>
-        <p class="mt-2 text-sm text-blue-800">Este codigo tambem aparece na lista do chatbot.</p>
+        <p class="mt-2 text-sm text-blue-800">Voce tambem pode consulta-lo depois pelo botao Ver codigo.</p>
       </div>
     }
 
@@ -96,11 +96,11 @@
                     · {{ chatbot.availableNow ? 'Disponivel agora' : 'Fora do horario' }}
                   }
                 </p>
-                @if (chatbot.accessCode) {
+                @if (revealedAccessCode(chatbot.id); as accessCode) {
                   <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
                     <span class="text-slate-500">Codigo:</span>
-                    <code class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono font-semibold text-slate-900">{{ chatbot.accessCode }}</code>
-                    <button type="button" (click)="copyAccessCode(chatbot.accessCode)" class="font-medium text-blue-700 hover:text-blue-900">Copiar</button>
+                    <code class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono font-semibold text-slate-900">{{ accessCode }}</code>
+                    <button type="button" (click)="copyAccessCode(accessCode)" class="font-medium text-blue-700 hover:text-blue-900">Copiar</button>
                   </div>
                 } @else {
                   <button type="button" (click)="revealAccessCode(chatbot)" [disabled]="loadingCodeChatbotId() === chatbot.id" class="mt-3 text-sm font-medium text-blue-700 hover:text-blue-900 disabled:opacity-50">
