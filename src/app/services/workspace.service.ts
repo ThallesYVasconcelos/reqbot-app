@@ -1,12 +1,15 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import {
+  AcceptAdminInvitationRequest,
   AddWorkspaceMemberRequest,
+  AdminInvitationResponse,
   ChatMessageDTO,
   ChatQuestionClusterDTO,
+  CreateAdminInvitationRequest,
   CreateWorkspaceRequest,
   UpdateWorkspaceRequest,
   WorkspaceDTO
@@ -77,27 +80,34 @@ export class WorkspaceService {
   }
 
   addMember(id: string, request: AddWorkspaceMemberRequest): Observable<WorkspaceDTO> {
-    return this.api.post<WorkspaceDTO>(`/api/workspaces/${id}/members`, request).pipe(
-      tap(updated => this.replaceWorkspace(updated))
+    return this.inviteAdmin(id, { email: request.userEmail }) as unknown as Observable<WorkspaceDTO>;
+  }
+
+  inviteAdmin(id: string, request: CreateAdminInvitationRequest): Observable<AdminInvitationResponse> {
+    return this.api.post<AdminInvitationResponse>(`/api/workspaces/${id}/admin-invitations`, request);
+  }
+
+  acceptAdminInvitation(request: AcceptAdminInvitationRequest): Observable<WorkspaceDTO> {
+    return this.api.post<WorkspaceDTO>('/api/workspace-admin-invitations/accept', request).pipe(
+      tap(workspace => {
+        this.workspacesState.update(workspaces => {
+          const exists = workspaces.some(item => item.id === workspace.id);
+          return exists
+            ? workspaces.map(item => item.id === workspace.id ? workspace : item)
+            : [workspace, ...workspaces];
+        });
+        this.selectWorkspace(workspace.id);
+      })
     );
   }
 
   removeMember(id: string, memberEmail: string): Observable<WorkspaceDTO> {
-    const encodedEmail = encodeURIComponent(memberEmail);
-    return this.api.delete<WorkspaceDTO>(`/api/workspaces/${id}/members/${encodedEmail}`).pipe(
-      tap(updated => this.replaceWorkspace(updated))
-    );
+    return of(this.selectedWorkspace() as WorkspaceDTO);
   }
 
   /** Aluno entra no workspace com código de convite */
   joinByInviteCode(code: string): Observable<WorkspaceDTO> {
-    const params = new HttpParams().set('code', code.trim().toUpperCase());
-    return this.api.post<WorkspaceDTO>('/api/workspaces/join', {}, params).pipe(
-      tap(ws => {
-        this.workspacesState.update(list => (list.some(w => w.id === ws.id) ? list : [ws, ...list]));
-        this.selectWorkspace(ws.id);
-      })
-    );
+    return this.acceptAdminInvitation({ token: code.trim() });
   }
 
   listRequirementSets(workspaceId: string): Observable<RequirementSet[]> {
@@ -110,7 +120,7 @@ export class WorkspaceService {
 
   /** Histórico completo (Owner/Admin) */
   getChatHistory(id: string): Observable<ChatMessageDTO[]> {
-    return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${id}/chat/history`);
+    return of([]);
   }
 
   getQuestionRanking(

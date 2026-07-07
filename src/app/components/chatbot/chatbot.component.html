@@ -1,273 +1,95 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Header -->
-  <header class="bg-white shadow-sm border-b border-gray-300">
-    <div class="px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        @if (authService.isAdmin()) {
-          @if (viewAsUser()) {
-            <a
-              routerLink="/admin/dashboard"
-              class="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-              title="Sair da visualização como usuário"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-              </svg>
-              Voltar ao admin
-            </a>
-          } @else {
-            <a
-              routerLink="/admin/dashboard"
-              class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm"
-              title="Voltar ao painel admin"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-              </svg>
-              Painel Admin
-            </a>
-          }
-        }
-        <!-- Menu Sandwich -->
-        <button
-          (click)="toggleMenu()"
-          class="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          [attr.aria-label]="'Menu'"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-        </button>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Reqbot</h1>
-          <p class="text-sm text-gray-600">
-            @if (scheduleText()) {
-              {{ scheduleText() }}
-            } @else {
-              Chatbot educacional
-            }
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        @if (activeWorkspace()) {
-          <span class="text-sm font-medium text-gray-800">Workspace: {{ activeWorkspace()!.name }}</span>
-        }
-        @if (requirementSetName()) {
-          <span class="text-sm text-gray-600">· Atividade: {{ requirementSetName() }}</span>
-        }
-        <button
-          type="button"
-          (click)="goToWorkspaces()"
-          class="text-sm text-blue-600 hover:text-blue-800"
-        >
-          Workspaces
-        </button>
-        @if (canShowRequirements()) {
-          <button
-            (click)="toggleRequirementsModal()"
-            class="relative flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors"
-            [attr.aria-label]="'Requisitos do projeto'"
-            [title]="'Requisitos do projeto' + (approvedRequirements().length > 0 ? ' (' + approvedRequirements().length + ')' : '')"
-          >
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span class="text-sm font-medium">Requisitos</span>
-            @if (approvedRequirements().length > 0) {
-              <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
-                {{ approvedRequirements().length }}
-              </span>
-            }
-          </button>
-        }
-        <button
-          (click)="logout()"
-          class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors text-sm"
-        >
-          Sair
-        </button>
+<div class="flex min-h-screen bg-slate-50 text-slate-900">
+  <aside class="hidden w-72 flex-col border-r border-slate-200 bg-white p-4 md:flex">
+    <div class="mb-5 flex items-center justify-between">
+      <a routerLink="/app/spaces" class="text-sm font-semibold text-slate-900">ReqBot</a>
+      <button (click)="logout()" class="text-sm text-slate-500 hover:text-slate-900">Sair</button>
+    </div>
+
+    <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <label class="text-xs font-medium uppercase tracking-wide text-slate-500">Código de acesso</label>
+      <div class="mt-2 flex gap-2">
+        <input [ngModel]="joinCode()" (ngModelChange)="joinCode.set($event)" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase tracking-widest" placeholder="ABC123" />
+        <button (click)="joinChatbot()" [disabled]="joining()" class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Entrar</button>
       </div>
     </div>
-  </header>
 
-  <div class="flex h-[calc(100vh-80px)]">
-    <!-- Workspaces: cada um tem chat e histórico separados no backend -->
-    <aside 
-      class="w-56 bg-white border-r border-gray-300 p-4 overflow-y-auto transition-all duration-300 flex-shrink-0"
-      [class.hidden]="!showMenu()"
-    >
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">Workspaces</h2>
-      </div>
+    <div class="mt-5">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Meus chatbots</p>
       <div class="space-y-1">
-        @for (w of workspaces(); track w.id) {
-          <button
-            (click)="selectWorkspaceFromSidebar(w.id)"
-            class="w-full text-left px-3 py-2 rounded-lg transition-colors truncate"
-            [class.bg-blue-100]="activeSessionId() === w.id"
-            [class.text-blue-800]="activeSessionId() === w.id"
-            [class.hover:bg-gray-100]="activeSessionId() !== w.id"
-            [class.text-gray-700]="activeSessionId() !== w.id"
-            [title]="w.name"
-          >
-            {{ truncateName(w.name) }}
-          </button>
-        }
-        @if (workspaces().length === 0 && !bootLoading()) {
-          <p class="text-gray-500 text-sm">Nenhum workspace. Use o código de convite em Workspaces.</p>
-        }
         @if (bootLoading()) {
-          <p class="text-gray-500 text-sm">Carregando…</p>
+          <p class="text-sm text-slate-500">Carregando...</p>
+        } @else if (chatbots().length === 0) {
+          <p class="text-sm text-slate-500">Nenhum chatbot vinculado.</p>
+        }
+        @for (chatbot of chatbots(); track chatbot.id) {
+          <button (click)="selectChatbot(chatbot.id)" class="w-full rounded-lg px-3 py-2 text-left text-sm transition" [class.bg-blue-50]="activeChatbotId() === chatbot.id" [class.text-blue-700]="activeChatbotId() === chatbot.id" [class.hover:bg-slate-50]="activeChatbotId() !== chatbot.id">
+            <span class="block truncate font-medium">{{ chatbot.name }}</span>
+            <span class="block truncate text-xs text-slate-500">{{ chatbot.requirementSetName || 'Projeto vinculado' }}</span>
+          </button>
         }
       </div>
-    </aside>
+    </div>
+  </aside>
 
-    <!-- Área de Chat (Centro) -->
-    <main class="flex-1 flex flex-col min-w-0">
-      @if (bootLoading()) {
-        <div class="p-6 text-center text-gray-600">Carregando workspaces…</div>
-      }
-      @if (error() && !bootLoading()) {
-        <div class="p-4 bg-red-50 border-b border-red-200">
-          <p class="text-red-700">{{ error() }}</p>
-          <button type="button" (click)="goToWorkspaces()" class="mt-2 text-sm text-red-800 underline">Ir para Workspaces</button>
+  <main class="flex min-w-0 flex-1 flex-col">
+    <header class="border-b border-slate-200 bg-white px-4 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-sm text-slate-500">Chatbots</p>
+          <h1 class="text-lg font-semibold text-slate-900">{{ activeChatbot()?.name || 'Entrar em chatbot' }}</h1>
         </div>
-      }
+        <div class="flex items-center gap-2">
+          <button (click)="goToSpaces()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Espaços</button>
+        </div>
+      </div>
+    </header>
 
-      <!-- Mensagens -->
-      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+    @if (error()) {
+      <div class="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</div>
+    }
+
+    @if (chatbots().length === 0 && !bootLoading()) {
+      <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6 text-center">
+        <p class="text-sm font-medium text-slate-900">Entre com o código do chatbot</p>
+        <p class="mt-1 text-sm text-slate-500">Use o código compartilhado pelo dono ou administrador do espaço.</p>
+        <div class="mt-5 flex gap-2">
+          <input [ngModel]="joinCode()" (ngModelChange)="joinCode.set($event)" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-center font-mono uppercase tracking-widest" placeholder="ABC123" />
+          <button (click)="joinChatbot()" [disabled]="joining()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Entrar</button>
+        </div>
+      </div>
+    } @else {
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6">
         @if (messages().length === 0) {
-          <div class="text-center py-12 max-w-2xl mx-auto">
-            <div class="inline-block p-4 bg-violet-100 rounded-full mb-4">
-              <svg class="w-12 h-12 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
-            </div>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Bem-vindo ao Reqbot!</h2>
-            <p class="text-gray-600 mb-4">Faça perguntas sobre os requisitos do projeto.</p>
-            @if (projectDescription()) {
-              <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-left">
-                <h3 class="text-sm font-semibold text-gray-700 mb-2">Sobre o projeto</h3>
-                <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ projectDescription() }}</p>
-              </div>
-            }
+          <div class="mx-auto max-w-xl py-16 text-center">
+            <p class="text-sm font-medium text-slate-900">Faça uma pergunta sobre o projeto.</p>
+            <p class="mt-1 text-sm text-slate-500">As respostas usam os requisitos vinculados ao chatbot selecionado.</p>
           </div>
         }
 
-        @for (message of messages(); track $index) {
-          <div class="flex" [ngClass]="message.isUser ? 'justify-end' : 'justify-start'">
-            <div
-              class="max-w-2xl rounded-lg p-4"
-              [ngClass]="message.isUser ? 'bg-blue-800 text-white' : 'bg-violet-50 text-gray-900 shadow border border-violet-100'"
-            >
-              @if (message.isUser) {
-                <p class="font-medium mb-1">Você</p>
-                <p>{{ message.question }}</p>
-              } @else {
-                <div class="flex items-center gap-2 mb-1">
-                  <svg class="w-4 h-4 text-violet-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                  </svg>
-                  <p class="font-medium text-violet-800">Reqbot</p>
-                </div>
-                @if (message.answer) {
-                  <p class="whitespace-pre-wrap text-gray-800">{{ message.answer }}</p>
-                } @else {
-                  <div class="flex items-center gap-2">
-                    <svg class="animate-spin h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span class="text-gray-600">Pensando...</span>
-                  </div>
-                }
-              }
-              <p class="text-xs mt-2 opacity-70">
-                {{ toLocalTimestamp(message.timestamp) | date:'HH:mm' }}
-              </p>
-            </div>
-          </div>
-        }
-
-        @if (loading() && messages().length > 0) {
-          <div class="flex justify-start">
-            <div class="bg-violet-50 rounded-lg shadow border border-violet-100 p-4">
-              <div class="flex items-center gap-2">
-                <svg class="animate-spin h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span class="text-violet-800">Reqbot está processando...</span>
+        <div class="mx-auto max-w-3xl space-y-4">
+          @for (message of messages(); track $index) {
+            <div class="flex" [class.justify-end]="message.isUser">
+              <div class="max-w-[85%] rounded-lg border px-4 py-3 text-sm" [class.border-blue-600]="message.isUser" [class.bg-blue-600]="message.isUser" [class.text-white]="message.isUser" [class.border-slate-200]="!message.isUser" [class.bg-white]="!message.isUser" [class.text-slate-800]="!message.isUser">
+                <p class="mb-1 text-xs font-semibold opacity-75">{{ message.isUser ? 'Você' : 'ReqBot' }}</p>
+                <p class="whitespace-pre-wrap">{{ message.isUser ? message.question : message.answer }}</p>
               </div>
             </div>
-          </div>
-        }
-      </div>
-
-      <!-- Input -->
-      <div class="border-t border-gray-300 bg-white p-4">
-        <form (ngSubmit)="sendMessage()" class="flex gap-3">
-          <input
-            type="text"
-            [ngModel]="currentQuestion()"
-            (ngModelChange)="currentQuestion.set($event)"
-            name="question"
-            placeholder="Digite sua pergunta..."
-            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-            [disabled]="loading() || !canSendMessage()"
-          />
-          <button
-            type="submit"
-            [disabled]="loading() || !currentQuestion().trim() || !canSendMessage()"
-            class="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Enviar
-          </button>
-        </form>
-        @if (!canSendMessage() && activeSessionId() && !bootLoading()) {
-          <p class="text-xs text-gray-500 mt-2">Envie mensagens quando o chatbot estiver ativo e dentro do horário do workspace.</p>
-        }
-      </div>
-    </main>
-  </div>
-
-  <!-- Modal Requisitos Aprovados -->
-  @if (showRequirementsModal()) {
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      (click)="closeRequirementsModal()"
-    >
-      <div
-        class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
-        (click)="$event.stopPropagation()"
-      >
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">Requisitos</h2>
-          <button
-            (click)="closeRequirementsModal()"
-            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4">
-          @if (approvedRequirements().length === 0) {
-            <p class="text-gray-500 text-sm text-center py-8">Nenhum requisito disponível</p>
-          } @else {
-            <div class="space-y-3">
-              @for (req of approvedRequirements(); track req.uuid) {
-                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100/80 transition-colors">
-                  <h3 class="font-semibold text-gray-900 mb-2">{{ req.requirementId }}</h3>
-                  <p class="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">{{ req.refinedRequirement }}</p>
-                </div>
-              }
-            </div>
+          }
+          @if (loading()) {
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">Processando pergunta...</div>
           }
         </div>
       </div>
-    </div>
-  }
+
+      <form (ngSubmit)="sendMessage()" class="border-t border-slate-200 bg-white p-4">
+        <div class="mx-auto flex max-w-3xl gap-3">
+          <input [ngModel]="currentQuestion()" (ngModelChange)="currentQuestion.set($event)" name="question" [disabled]="loading() || !canSendMessage()" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Digite sua pergunta..." />
+          <button type="submit" [disabled]="loading() || !currentQuestion().trim() || !canSendMessage()" class="rounded-lg bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">Enviar</button>
+        </div>
+        @if (activeChatbot() && !canSendMessage()) {
+          <p class="mx-auto mt-2 max-w-3xl text-xs text-slate-500">Este chatbot está inativo ou fora do horário configurado.</p>
+        }
+      </form>
+    }
+  </main>
 </div>

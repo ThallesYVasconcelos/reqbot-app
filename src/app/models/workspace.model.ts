@@ -38,6 +38,21 @@ export interface AddWorkspaceMemberRequest {
   role: Exclude<WorkspaceRole, 'OWNER'>;
 }
 
+export interface CreateAdminInvitationRequest {
+  email: string;
+}
+
+export interface AdminInvitationResponse {
+  token: string;
+  email?: string;
+  workspaceId?: string;
+  expiresAt?: string;
+}
+
+export interface AcceptAdminInvitationRequest {
+  token: string;
+}
+
 export interface ChatMessageDTO {
   id: string;
   userEmail: string | null;

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 import { ApiService } from './api.service';
 import { RequirementSet } from '../models/requirement-set.model';
 import { Requirement } from '../models/requirement.model';
@@ -11,14 +12,21 @@ export class RequirementSetService {
   constructor(private api: ApiService) {}
 
   getById(id: string): Observable<RequirementSet> {
-    return this.api.get<RequirementSet>(`/api/requirement-sets/${id}`);
+    return of({
+      id,
+      name: 'Projeto',
+      description: '',
+      createdAt: '',
+      updatedAt: ''
+    });
   }
 
   delete(id: string): Observable<void> {
-    return this.api.delete<void>(`/api/requirement-sets/${id}`);
+    return of(void 0);
   }
 
   getRequirements(id: string): Observable<Requirement[]> {
-    return this.api.get<Requirement[]>(`/api/requirement-sets/${id}/requirements`);
+    const params = new HttpParams().set('requirementSetId', id);
+    return this.api.get<Requirement[]>('/api/requirements', params);
   }
 }

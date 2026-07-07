@@ -16,12 +16,7 @@ export class LoginComponent {
     private router: Router
   ) {
     if (this.authService.isAuthenticated()) {
-      const user = this.authService.user();
-      if (user?.role === 'ADMIN') {
-        this.router.navigate(['/admin/dashboard']);
-      } else {
-        this.router.navigate(['/chatbot']);
-      }
+      this.router.navigate(['/app/spaces']);
     }
   }
 

@@ -4,9 +4,10 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   ChatbotConfig,
+  ChatRequest,
   CreateChatbotConfigRequest,
-  WorkspaceChatResponse,
-  ChatRequest
+  JoinChatbotRequest,
+  WorkspaceChatResponse
 } from '../models/chatbot.model';
 import { ChatMessageDTO } from '../models/workspace.model';
 
@@ -16,51 +17,70 @@ import { ChatMessageDTO } from '../models/workspace.model';
 export class ChatbotService {
   constructor(private api: ApiService) {}
 
-  // --- Config global (legada, admin) ---
-  createConfig(request: CreateChatbotConfigRequest): Observable<ChatbotConfig> {
-    return this.api.post<ChatbotConfig>('/api/admin/chatbot/config', request);
+  createWorkspaceChatbot(workspaceId: string, request: CreateChatbotConfigRequest): Observable<ChatbotConfig> {
+    return this.api.post<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbots`, request);
   }
 
-  getActiveConfig(): Observable<ChatbotConfig> {
-    return this.api.get<ChatbotConfig>('/api/admin/chatbot/config/active');
+  getWorkspaceChatbots(workspaceId: string): Observable<ChatbotConfig[]> {
+    return this.api.get<ChatbotConfig[]>(`/api/workspaces/${workspaceId}/chatbots`);
   }
 
-  getAllConfigs(): Observable<ChatbotConfig[]> {
-    return this.api.get<ChatbotConfig[]>('/api/admin/chatbot/config');
+  toggleWorkspaceChatbot(workspaceId: string, chatbotId: string, active: boolean): Observable<ChatbotConfig> {
+    const params = new HttpParams().set('active', String(active));
+    return this.api.patch<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/active`, {}, params);
   }
 
-  getConfigById(id: string): Observable<ChatbotConfig> {
-    return this.api.get<ChatbotConfig>(`/api/admin/chatbot/config/${id}`);
+  getWorkspaceChatbotHistory(workspaceId: string, chatbotId: string): Observable<ChatMessageDTO[]> {
+    return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/history`);
   }
 
-  toggleConfig(id: string, isActive: boolean): Observable<ChatbotConfig> {
-    const params = new HttpParams().set('isActive', isActive.toString());
-    return this.api.patch<ChatbotConfig>(`/api/admin/chatbot/config/${id}/toggle`, {}, params);
+  joinByCode(request: JoinChatbotRequest): Observable<ChatbotConfig> {
+    return this.api.post<ChatbotConfig>('/api/chatbots/join', request);
   }
 
-  deleteConfig(id: string): Observable<void> {
-    return this.api.delete<void>(`/api/admin/chatbot/config/${id}`);
+  getMyChatbots(): Observable<ChatbotConfig[]> {
+    return this.api.get<ChatbotConfig[]>('/api/chatbots/me');
   }
 
-  // --- Config por workspace ---
+  ask(chatbotId: string, request: ChatRequest): Observable<WorkspaceChatResponse> {
+    return this.api.post<WorkspaceChatResponse>(`/api/chatbots/${chatbotId}/chat/ask`, request);
+  }
+
+  getMyChatHistory(chatbotId: string): Observable<ChatMessageDTO[]> {
+    return this.api.get<ChatMessageDTO[]>(`/api/chatbots/${chatbotId}/chat/history/me`);
+  }
+
+  // Compatibility wrappers while older components migrate.
   getWorkspaceActiveConfig(workspaceId: string): Observable<ChatbotConfig> {
-    return this.api.get<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbot/config/active`);
+    return new Observable<ChatbotConfig>(subscriber => {
+      this.getWorkspaceChatbots(workspaceId).subscribe({
+        next: chatbots => {
+          const active = chatbots.find(bot => (bot.isActive ?? bot.active) && bot.availableNow !== false) ?? chatbots[0];
+          if (active) {
+            subscriber.next(active);
+            subscriber.complete();
+          } else {
+            subscriber.error({ status: 404, error: { message: 'Nenhum chatbot configurado para este espaço' } });
+          }
+        },
+        error: err => subscriber.error(err)
+      });
+    });
   }
 
   createWorkspaceConfig(workspaceId: string, request: CreateChatbotConfigRequest): Observable<ChatbotConfig> {
-    return this.api.post<ChatbotConfig>(`/api/workspaces/${workspaceId}/chatbot/config`, request);
+    return this.createWorkspaceChatbot(workspaceId, request);
   }
 
   getWorkspaceConfigs(workspaceId: string): Observable<ChatbotConfig[]> {
-    return this.api.get<ChatbotConfig[]>(`/api/workspaces/${workspaceId}/chatbot/config`);
+    return this.getWorkspaceChatbots(workspaceId);
   }
 
-  // --- Chat por workspace ---
   askInWorkspace(workspaceId: string, request: ChatRequest): Observable<WorkspaceChatResponse> {
-    return this.api.post<WorkspaceChatResponse>(`/api/workspaces/${workspaceId}/chat/ask`, request);
+    return this.ask(workspaceId, request);
   }
 
   getMyChatHistoryInWorkspace(workspaceId: string): Observable<ChatMessageDTO[]> {
-    return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${workspaceId}/chat/history/me`);
+    return this.getMyChatHistory(workspaceId);
   }
 }

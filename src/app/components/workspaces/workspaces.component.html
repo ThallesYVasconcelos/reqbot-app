@@ -1,643 +1,253 @@
 <div class="space-y-6">
-  @if (error()) {
-    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-      {{ error() }}
+  <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div>
+      <p class="text-sm text-slate-500">
+        Espaços@if (selectedWorkspace(); as workspace) { / {{ workspace.name }} }
+      </p>
+      <h1 class="mt-1 text-2xl font-semibold text-slate-900">Espaços</h1>
+      <p class="mt-1 text-sm text-slate-600">Organize projetos, requisitos, chatbots e perguntas por contexto.</p>
     </div>
+    <button (click)="openCreateWorkspaceModal()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+      Criar espaço
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{{ error() }}</div>
+  }
+  @if (copyFeedback()) {
+    <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">{{ copyFeedback() }}</div>
   }
 
   @if (loading()) {
-    <div class="text-center py-24">
-      <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <p class="mt-6 text-gray-600">Carregando workspaces...</p>
-    </div>
+    <div class="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Carregando espaços...</div>
   } @else if (workspaces().length === 0) {
-    <div
-      class="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center px-4 py-20 md:py-28 text-center bg-gradient-to-b from-slate-50/80 to-white rounded-2xl"
-    >
-      <div class="w-full max-w-xl mx-auto">
-        <div
-          class="inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 mb-10 shadow-sm"
-        >
-          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
-            />
-          </svg>
-        </div>
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight leading-tight mb-8">
-          Entre no seu primeiro workspace
-        </h1>
-        <p class="text-base md:text-lg text-gray-500 leading-relaxed max-w-md mx-auto mb-14">
-          @if (canCreateWorkspace()) {
-            Crie uma turma ou use um código de convite para fazer parte de um workspace.
-          } @else {
-            Insira o código de convite que recebeu do professor ou administrador.
-          }
-        </p>
-
-        <div
-          class="bg-white border border-gray-200/80 rounded-2xl p-8 md:p-10 shadow-sm text-left max-w-md mx-auto mb-12 space-y-4"
-        >
-          <label class="block text-sm font-semibold text-gray-800">Código de convite</label>
-          <input
-            type="text"
-            [ngModel]="joinCodeInput()"
-            (ngModelChange)="joinCodeInput.set($event)"
-            placeholder="Ex: AB3K9ZXQ"
-            class="w-full px-4 py-3.5 border border-gray-200 rounded-xl uppercase tracking-widest font-mono text-center text-base focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
-            maxlength="12"
-            autocomplete="off"
-          />
-          <button
-            type="button"
-            (click)="joinByCode()"
-            [disabled]="joinLoading()"
-            class="w-full mt-2 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
-          >
-            {{ joinLoading() ? 'Entrando…' : 'Entrar no workspace' }}
-          </button>
-        </div>
-        @if (copyFeedback()) {
-          <p class="text-sm text-green-700 mb-4">{{ copyFeedback() }}</p>
-        }
-
-        @if (canCreateWorkspace()) {
-          <button
-            (click)="openCreateWorkspaceModal()"
-            type="button"
-            class="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors"
-          >
-            Criar meu workspace
-          </button>
-        } @else {
-          <p class="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
-            Sem código? Peça ao administrador o convite para a sua turma.
-          </p>
-        }
+    <section class="rounded-lg border border-slate-200 bg-white p-8">
+      <div class="mx-auto max-w-xl text-center">
+        <p class="text-sm font-medium text-slate-900">Crie seu primeiro espaço</p>
+        <p class="mt-2 text-sm text-slate-500">Quem cria um espaço vira OWNER. Um administrador entra por token de convite.</p>
+        <button (click)="openCreateWorkspaceModal()" class="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar espaço</button>
       </div>
-    </div>
+    </section>
   } @else {
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <h1 class="text-3xl font-bold text-gray-800">Workspaces</h1>
-      <div class="flex flex-wrap items-center gap-3">
-        <a
-          routerLink="/chatbot"
-          class="px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg"
-        >
-          Ir para o chat
-        </a>
-        @if (canCreateWorkspace()) {
-          <button
-            (click)="openCreateWorkspaceModal()"
-            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
-          >
-            + Novo Workspace
-          </button>
-        }
-      </div>
-    </div>
-
-    <div class="flex flex-col sm:flex-row gap-3 sm:items-stretch p-5 md:p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
-      <div class="flex-1 min-w-0">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Entrar com código de convite</label>
-        <input
-          type="text"
-          [ngModel]="joinCodeInput()"
-          (ngModelChange)="joinCodeInput.set($event)"
-          placeholder="Ex: AB3K9ZXQ"
-          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg uppercase tracking-wider font-mono"
-          maxlength="12"
-        />
-      </div>
-      <div class="flex sm:items-end">
-        <button
-          type="button"
-          (click)="joinByCode()"
-          [disabled]="joinLoading()"
-          class="w-full sm:w-auto px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium disabled:opacity-50 whitespace-nowrap"
-        >
-          {{ joinLoading() ? 'Entrando…' : 'Entrar' }}
-        </button>
-      </div>
-    </div>
-    @if (copyFeedback()) {
-      <p class="text-sm text-green-700">{{ copyFeedback() }}</p>
-    }
-
-    <div class="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-6">
-      <aside class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-        <div class="p-4 border-b border-gray-200">
-          <h2 class="font-semibold text-gray-900">Meus workspaces</h2>
+    <div class="grid gap-6 xl:grid-cols-[300px_1fr]">
+      <aside class="rounded-lg border border-slate-200 bg-white">
+        <div class="border-b border-slate-200 p-4">
+          <p class="text-sm font-semibold text-slate-900">Meus espaços</p>
         </div>
-        <div class="divide-y divide-gray-100">
+        <div class="divide-y divide-slate-100">
           @for (workspace of workspaces(); track workspace.id) {
-            <button
-              (click)="selectWorkspace(workspace.id)"
-              class="w-full text-left p-4 hover:bg-gray-50 transition-colors"
-              [class.bg-blue-50]="selectedWorkspaceId() === workspace.id"
-            >
+            <button (click)="selectWorkspace(workspace.id)" class="w-full p-4 text-left transition hover:bg-slate-50" [class.bg-blue-50]="selectedWorkspaceId() === workspace.id">
               <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="font-semibold text-gray-900">{{ workspace.name }}</p>
-                  <p class="text-xs text-gray-500 mt-1">{{ typeLabel(workspace.type) }}</p>
+                <div class="min-w-0">
+                  <p class="truncate font-medium text-slate-900">{{ workspace.name }}</p>
+                  <p class="mt-1 text-xs text-slate-500">{{ typeLabel(workspace.type) }}</p>
                 </div>
                 @if (selectedWorkspaceId() === workspace.id) {
-                  <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">Selecionado</span>
+                  <span class="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Atual</span>
                 }
               </div>
-              <p class="text-sm text-gray-600 mt-2 line-clamp-2">{{ workspace.description || 'Sem descrição' }}</p>
+              <p class="mt-2 line-clamp-2 text-sm text-slate-600">{{ workspace.description || 'Sem descrição' }}</p>
             </button>
           }
         </div>
       </aside>
 
       @if (selectedWorkspace(); as workspace) {
-        <section class="space-y-6">
-          <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+        <section class="space-y-5">
+          <div class="rounded-lg border border-slate-200 bg-white p-5">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <h2 class="text-2xl font-bold text-gray-900">{{ workspace.name }}</h2>
+                  <h2 class="text-xl font-semibold text-slate-900">{{ workspace.name }}</h2>
                   @if (userWorkspaceRole()) {
-                    <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
-                      {{ roleLabel(userWorkspaceRole()!) }}
-                    </span>
+                    <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{{ roleLabel(userWorkspaceRole()!) }}</span>
                   }
                 </div>
-                <p class="text-sm text-gray-500 mt-1">
-                  {{ typeLabel(workspace.type) }}
-                  @if (!isMemberOnly()) {
-                    <span> · Dono: {{ workspace.ownerEmail }}</span>
-                  }
-                </p>
-                @if (!isMemberOnly()) {
-                  <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="text-sm text-gray-600">Código de convite:</span>
-                    <code class="px-2 py-1 bg-gray-100 rounded font-mono text-sm">{{ workspace.inviteCode }}</code>
-                    <button
-                      type="button"
-                      (click)="copyInviteCode(workspace.inviteCode || '')"
-                      class="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      Copiar código
-                    </button>
-                  </div>
-                }
-                <p class="text-gray-700 mt-4 whitespace-pre-wrap">{{ workspace.description || 'Sem descrição.' }}</p>
+                <p class="mt-1 text-sm text-slate-500">{{ typeLabel(workspace.type) }} · Dono: {{ workspace.ownerEmail }}</p>
+                <p class="mt-3 max-w-3xl whitespace-pre-wrap text-sm text-slate-700">{{ workspace.description || 'Sem descrição.' }}</p>
               </div>
               <div class="flex flex-wrap gap-2">
                 @if (canEditWorkspace()) {
-                  <button
-                    (click)="openEditWorkspaceModal(workspace)"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                  >
-                    Editar
-                  </button>
+                  <button (click)="openEditWorkspaceModal(workspace)" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Editar</button>
                 }
                 @if (canDeleteWorkspace()) {
-                  <button
-                    (click)="openDeleteWorkspaceModal(workspace)"
-                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-                  >
-                    Excluir
-                  </button>
+                  <button (click)="openDeleteWorkspaceModal(workspace)" class="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50">Excluir</button>
                 }
               </div>
             </div>
           </div>
 
-          @if (!isMemberOnly()) {
-          <div class="bg-white rounded-lg shadow border border-gray-200">
-            <div class="flex flex-wrap gap-2 border-b border-gray-200 p-3">
-              <button
-                (click)="setActiveTab('details')"
-                class="px-4 py-2 rounded-lg text-sm font-medium"
-                [class.bg-gray-900]="activeTab() === 'details'"
-                [class.text-white]="activeTab() === 'details'"
-                [class.text-gray-700]="activeTab() !== 'details'"
-                [class.hover:bg-gray-100]="activeTab() !== 'details'"
-              >
-                Membros
-              </button>
-              <button
-                (click)="setActiveTab('projects')"
-                class="px-4 py-2 rounded-lg text-sm font-medium"
-                [class.bg-gray-900]="activeTab() === 'projects'"
-                [class.text-white]="activeTab() === 'projects'"
-                [class.text-gray-700]="activeTab() !== 'projects'"
-                [class.hover:bg-gray-100]="activeTab() !== 'projects'"
-              >
-                Projetos
-              </button>
-              <button
-                (click)="setActiveTab('history')"
-                class="px-4 py-2 rounded-lg text-sm font-medium"
-                [class.bg-gray-900]="activeTab() === 'history'"
-                [class.text-white]="activeTab() === 'history'"
-                [class.text-gray-700]="activeTab() !== 'history'"
-                [class.hover:bg-gray-100]="activeTab() !== 'history'"
-              >
-                Histórico do chat
-              </button>
-              <button
-                (click)="setActiveTab('ranking')"
-                class="px-4 py-2 rounded-lg text-sm font-medium"
-                [class.bg-gray-900]="activeTab() === 'ranking'"
-                [class.text-white]="activeTab() === 'ranking'"
-                [class.text-gray-700]="activeTab() !== 'ranking'"
-                [class.hover:bg-gray-100]="activeTab() !== 'ranking'"
-              >
-                Ranking anônimo
-              </button>
+          <div class="rounded-lg border border-slate-200 bg-white">
+            <div class="flex flex-wrap gap-2 border-b border-slate-200 p-3">
+              <button (click)="setActiveTab('projects')" class="tab-button" [class.active]="activeTab() === 'projects'">Projetos</button>
+              <button (click)="setActiveTab('details')" class="tab-button" [class.active]="activeTab() === 'details'">Equipe</button>
+              <button (click)="setActiveTab('ranking')" class="tab-button" [class.active]="activeTab() === 'ranking'">Perguntas</button>
+              <button (click)="setActiveTab('history')" class="tab-button" [class.active]="activeTab() === 'history'">Histórico</button>
             </div>
 
-            <div class="p-6">
-              @if (activeTab() === 'details') {
-                <div class="space-y-6">
-                  @if (canManageMembers()) {
-                    <div class="grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-3">
-                      <input
-                        type="email"
-                        [ngModel]="memberEmail()"
-                        (ngModelChange)="memberEmail.set($event)"
-                        placeholder="email@exemplo.com"
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <select
-                        [ngModel]="memberRole()"
-                        (ngModelChange)="memberRole.set($event)"
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="MEMBER">Membro</option>
-                        <option value="ADMIN">Administrador</option>
-                      </select>
-                      <button
-                        (click)="addMember()"
-                        [disabled]="memberSaving()"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
-                      >
-                        Adicionar
-                      </button>
+            <div class="p-5">
+              @if (activeTab() === 'projects') {
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 class="text-sm font-semibold text-slate-900">Projetos</h3>
+                      <p class="text-sm text-slate-500">Requisitos e chatbots são vinculados aos projetos.</p>
+                    </div>
+                    @if (canManageProjects()) {
+                      <button (click)="openCreateProjectModal()" class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Novo projeto</button>
+                    }
+                  </div>
+                  @if (projectsLoading()) {
+                    <p class="text-sm text-slate-500">Carregando projetos...</p>
+                  } @else if (projects().length === 0) {
+                    <div class="rounded-lg border border-dashed border-slate-300 p-6 text-sm text-slate-500">Nenhum projeto neste espaço.</div>
+                  } @else {
+                    <div class="grid gap-3 md:grid-cols-2">
+                      @for (project of projects(); track project.id) {
+                        <button (click)="goToProject(project)" class="rounded-lg border border-slate-200 bg-white p-4 text-left hover:border-blue-200 hover:bg-blue-50/40">
+                          <p class="font-medium text-slate-900">{{ project.name }}</p>
+                          <p class="mt-1 line-clamp-2 text-sm text-slate-500">{{ project.description || 'Sem descrição' }}</p>
+                          <p class="mt-3 text-xs text-slate-500">{{ project.requirementsCount || 0 }} requisitos</p>
+                        </button>
+                      }
                     </div>
                   }
+                </div>
+              }
 
-                  <div class="overflow-hidden border border-gray-200 rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                      <thead class="bg-gray-50">
-                        <tr>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Papel</th>
-                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Desde</th>
-                          <th class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                          <td class="px-6 py-4 text-sm text-gray-900">{{ workspace.ownerEmail }}</td>
-                          <td class="px-6 py-4 text-sm text-gray-600">{{ roleLabel('OWNER') }}</td>
-                          <td class="px-6 py-4 text-sm text-gray-500">{{ workspace.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                          <td class="px-6 py-4 text-right text-sm text-gray-400">-</td>
-                        </tr>
-                        @for (member of workspace.members; track member.id) {
-                          <tr>
-                            <td class="px-6 py-4 text-sm text-gray-900">{{ member.userEmail }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ roleLabel(member.role) }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500">{{ member.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                            <td class="px-6 py-4 text-right text-sm">
-                              @if (canManageMembers()) {
-                                <button
-                                  (click)="removeMember(member.userEmail)"
-                                  [disabled]="memberSaving()"
-                                  class="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                >
-                                  Remover
-                                </button>
-                              } @else {
-                                <span class="text-gray-400">-</span>
-                              }
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
+              @if (activeTab() === 'details') {
+                <div class="space-y-5">
+                  @if (canManageMembers()) {
+                    <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p class="text-sm font-semibold text-slate-900">Convidar administrador</p>
+                      <p class="mt-1 text-sm text-slate-500">O backend retorna um token. Copie e envie ao administrador.</p>
+                      <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                        <input type="email" [ngModel]="memberEmail()" (ngModelChange)="memberEmail.set($event)" placeholder="admin@email.com" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                        <button (click)="addMember()" [disabled]="memberSaving()" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">Gerar token</button>
+                      </div>
+                    </div>
+                  }
+                  <div class="rounded-lg border border-slate-200">
+                    <div class="grid grid-cols-[1fr_140px] border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                      <span>Email</span><span>Papel</span>
+                    </div>
+                    <div class="grid grid-cols-[1fr_140px] px-4 py-3 text-sm">
+                      <span class="text-slate-900">{{ workspace.ownerEmail }}</span><span class="text-slate-600">OWNER</span>
+                    </div>
+                    @for (member of workspace.members; track member.id) {
+                      <div class="grid grid-cols-[1fr_140px] border-t border-slate-100 px-4 py-3 text-sm">
+                        <span class="text-slate-900">{{ member.userEmail }}</span><span class="text-slate-600">{{ member.role }}</span>
+                      </div>
+                    }
                   </div>
                 </div>
               }
 
-              @if (activeTab() === 'projects') {
+              @if (activeTab() === 'ranking') {
                 <div class="space-y-4">
-                  @if (canManageProjects()) {
-                    <div class="flex justify-end">
-                      <button
-                        (click)="openCreateProjectModal()"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                      >
-                        + Novo projeto (atividade)
-                      </button>
+                  <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <h3 class="text-sm font-semibold text-slate-900">Perguntas recorrentes</h3>
+                      <p class="text-sm text-slate-500">Ranking por similaridade, sem gráficos exagerados.</p>
                     </div>
+                    <button (click)="loadRanking()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Atualizar</button>
+                  </div>
+                  @if (analyticsError()) {
+                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{{ analyticsError() }}</div>
                   }
-                  @if (projectsLoading()) {
-                    <p class="text-gray-500">Carregando projetos…</p>
-                  } @else if (projects().length === 0) {
-                    <p class="text-gray-600">Nenhum projeto neste workspace. Crie um para vincular requisitos e ao chatbot.</p>
+                  @if (analyticsLoading() && ranking().length === 0) {
+                    <p class="text-sm text-slate-500">Carregando ranking...</p>
+                  } @else if (ranking().length === 0) {
+                    <p class="text-sm text-slate-500">Nenhuma pergunta recorrente encontrada.</p>
                   } @else {
-                    <div class="border border-gray-200 rounded-lg overflow-hidden">
-                      <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                          <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-700">Nome</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-700">Descrição</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-700">Ação</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (p of projects(); track p.id) {
-                            <tr class="hover:bg-gray-50">
-                              <td class="px-4 py-2 text-sm font-medium text-gray-900">{{ p.name }}</td>
-                              <td class="px-4 py-2 text-sm text-gray-600 max-w-md truncate" [title]="p.description">{{ p.description || '—' }}</td>
-                              <td class="px-4 py-2 text-right">
-                                <button type="button" (click)="goToProject(p)" class="text-blue-600 text-sm hover:underline">Abrir</button>
-                              </td>
-                            </tr>
-                          }
-                        </tbody>
-                      </table>
+                    <div class="space-y-3">
+                      @for (cluster of ranking(); track cluster.rank) {
+                        <div class="rounded-lg border border-slate-200 p-4">
+                          <div class="flex items-center justify-between gap-4">
+                            <div>
+                              <p class="text-xs text-slate-500">#{{ cluster.rank }}</p>
+                              <p class="font-medium text-slate-900">{{ cluster.representativeQuestion }}</p>
+                            </div>
+                            <span class="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">{{ cluster.totalOccurrences }}</span>
+                          </div>
+                          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                            <div class="h-full rounded-full bg-blue-600" [style.width.%]="cluster.totalOccurrences > 20 ? 100 : cluster.totalOccurrences * 5"></div>
+                          </div>
+                        </div>
+                      }
                     </div>
                   }
                 </div>
               }
 
               @if (activeTab() === 'history') {
-                @if (!canViewAnalytics()) {
-                  <p class="text-gray-600">Sem permissão para ver analytics deste workspace</p>
-                } @else {
-                  @if (analyticsError()) {
-                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{{ analyticsError() }}</div>
-                  }
-                  <div class="flex justify-end mb-4">
-                    <button (click)="loadHistory()" class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg">
-                      Atualizar histórico
-                    </button>
-                  </div>
-                  @if (analyticsLoading() && history().length === 0) {
-                    <p class="text-gray-500">Carregando histórico...</p>
-                  } @else if (history().length === 0) {
-                    <p class="text-gray-500">Nenhuma mensagem encontrada neste workspace.</p>
+                <div class="space-y-3">
+                  <button (click)="loadHistory()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Atualizar histórico</button>
+                  @if (history().length === 0) {
+                    <p class="text-sm text-slate-500">Nenhuma mensagem encontrada.</p>
                   } @else {
-                    <div class="space-y-3">
-                      @for (message of history(); track message.id) {
-                        <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                          <div class="flex flex-wrap items-center justify-between gap-2">
-                            <p class="font-semibold text-gray-900">{{ message.question }}</p>
-                            <span class="text-xs text-gray-500">{{ messageTimestamp(message) | date:'dd/MM/yyyy HH:mm' }}</span>
-                          </div>
-                          <p class="text-sm text-gray-600 mt-1">
-                            {{ message.userEmail || 'Usuário anônimo' }}
-                            @if (message.requirementSetName) {
-                              · Projeto: {{ message.requirementSetName }}
-                            }
-                          </p>
-                          <p class="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{{ message.answer || 'Sem resposta registrada' }}</p>
-                          <div class="flex flex-wrap gap-2 mt-3">
-                            @if (message.answeredFromCache) {
-                              <span class="px-2 py-1 rounded-full bg-violet-100 text-violet-700 text-xs">Cache</span>
-                            }
-                            @if (!message.chatbotAvailable) {
-                              <span class="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs">Chatbot indisponível</span>
-                            }
-                          </div>
-                        </div>
-                      }
-                    </div>
+                    @for (message of history(); track message.id) {
+                      <div class="rounded-lg border border-slate-200 p-4">
+                        <p class="font-medium text-slate-900">{{ message.question }}</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ message.userEmail || 'Usuário' }} · {{ messageTimestamp(message) | date:'dd/MM/yyyy HH:mm' }}</p>
+                        <p class="mt-3 whitespace-pre-wrap text-sm text-slate-700">{{ message.answer || 'Sem resposta registrada' }}</p>
+                      </div>
+                    }
                   }
-                }
-              }
-
-              @if (activeTab() === 'ranking') {
-                @if (!canViewAnalytics()) {
-                  <p class="text-gray-600">Sem permissão para ver analytics deste workspace</p>
-                } @else {
-                  @if (analyticsError()) {
-                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{{ analyticsError() }}</div>
-                  }
-                  <div class="grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-4 mb-6 items-end">
-                    <label class="block">
-                      <span class="text-sm font-medium text-gray-700">Limite</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max="50"
-                        [ngModel]="rankingLimit()"
-                        (ngModelChange)="rankingLimit.set(+$event)"
-                        class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      />
-                    </label>
-                    <label class="block">
-                      <span class="text-sm font-medium text-gray-700">
-                        Similaridade: {{ similarityThreshold() | number:'1.2-2' }}
-                      </span>
-                      <input
-                        type="range"
-                        min="0.70"
-                        max="0.98"
-                        step="0.01"
-                        [ngModel]="similarityThreshold()"
-                        (ngModelChange)="similarityThreshold.set(+$event)"
-                        class="mt-3 w-full"
-                      />
-                    </label>
-                    <button
-                      (click)="applyRankingFilters()"
-                      class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg"
-                    >
-                      Aplicar
-                    </button>
-                  </div>
-
-                  @if (analyticsLoading() && ranking().length === 0) {
-                    <p class="text-gray-500">Carregando ranking...</p>
-                  } @else if (ranking().length === 0) {
-                    <p class="text-gray-500">Nenhum agrupamento encontrado neste workspace.</p>
-                  } @else {
-                    <div class="space-y-3">
-                      @for (cluster of ranking(); track cluster.rank) {
-                        <div class="border border-gray-200 rounded-lg bg-white overflow-hidden">
-                          <button
-                            (click)="toggleRank(cluster.rank)"
-                            class="w-full p-4 text-left hover:bg-gray-50"
-                          >
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                              <div>
-                                <p class="text-sm text-gray-500">#{{ cluster.rank }}</p>
-                                <p class="font-semibold text-gray-900">{{ cluster.representativeQuestion }}</p>
-                              </div>
-                              <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
-                                {{ cluster.totalOccurrences }} ocorrências
-                              </span>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">
-                              {{ cluster.firstAskedAt | date:'dd/MM/yyyy' }} - {{ cluster.lastAskedAt | date:'dd/MM/yyyy' }}
-                              · Similaridade média {{ cluster.averageSimilarity | number:'1.2-2' }}
-                            </p>
-                          </button>
-                          @if (expandedRank() === cluster.rank) {
-                            <div class="px-4 pb-4 border-t border-gray-100">
-                              <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">Perguntas similares</h3>
-                              <ul class="space-y-2">
-                                @for (question of cluster.similarQuestionsSample; track question) {
-                                  <li class="p-3 bg-gray-50 rounded-lg text-sm text-gray-700">{{ question }}</li>
-                                }
-                              </ul>
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
-                }
+                </div>
               }
             </div>
           </div>
-          } @else {
-            <div
-              class="bg-white rounded-xl border border-gray-200 shadow-sm p-10 md:p-12 text-center max-w-lg mx-auto"
-            >
-              <p class="text-gray-600 mb-2 text-lg font-medium">Área do aluno</p>
-              <p class="text-sm text-gray-500 mb-8 leading-relaxed">
-                Configuração, convites, lista de membros, projetos e estatísticas ficam reservados a administradores
-                e ao dono do workspace. Use o chat para interagir com o Reqbot nesta turma.
-              </p>
-              <a
-                routerLink="/chatbot"
-                class="inline-flex items-center justify-center px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors"
-              >
-                Abrir chat
-              </a>
-            </div>
-          }
         </section>
       }
     </div>
   }
 
   @if (showDeleteModal() && deleteTarget()) {
-    <app-confirm-modal
-      title="Excluir Workspace"
-      [message]="getDeleteConfirmMessage()"
-      confirmLabel="Excluir"
-      cancelLabel="Cancelar"
-      variant="danger"
-      backdropClass="bg-black/30 backdrop-blur-sm"
-      (confirm)="confirmDeleteWorkspace()"
-      (cancel)="closeDeleteWorkspaceModal()"
-    />
+    <app-confirm-modal title="Excluir espaço" [message]="getDeleteConfirmMessage()" confirmLabel="Excluir" cancelLabel="Cancelar" variant="danger" backdropClass="bg-black/30 backdrop-blur-sm" (confirm)="confirmDeleteWorkspace()" (cancel)="closeDeleteWorkspaceModal()" />
   }
 
   @if (showProjectModal()) {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Novo projeto no workspace</h2>
-        @if (error()) {
-          <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{{ error() }}</div>
-        }
-        <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
-        <input
-          [ngModel]="newProjectName()"
-          (ngModelChange)="newProjectName.set($event)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3"
-        />
-        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-        <textarea
-          [ngModel]="newProjectDescription()"
-          (ngModelChange)="newProjectDescription.set($event)"
-          rows="3"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4"
-        ></textarea>
-        <div class="flex justify-end gap-2">
-          <button (click)="closeProjectModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg">Cancelar</button>
-          <button
-            (click)="createProjectInWorkspace()"
-            [disabled]="saving()"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-          >{{ saving() ? 'Criando…' : 'Criar' }}</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
+      <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+        <h2 class="text-lg font-semibold text-slate-900">Novo projeto</h2>
+        <div class="mt-4 space-y-4">
+          <input [ngModel]="newProjectName()" (ngModelChange)="newProjectName.set($event)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Sistema de Empréstimos" />
+          <textarea [ngModel]="newProjectDescription()" (ngModelChange)="newProjectDescription.set($event)" rows="3" class="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Descrição"></textarea>
+        </div>
+        <div class="mt-6 flex justify-end gap-2">
+          <button (click)="closeProjectModal()" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button>
+          <button (click)="createProjectInWorkspace()" [disabled]="saving()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{{ saving() ? 'Criando...' : 'Criar' }}</button>
         </div>
       </div>
     </div>
   }
 
   @if (showWorkspaceModal()) {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
-        <div class="p-6">
-          <h2 class="text-2xl font-bold text-gray-800 mb-4">
-            {{ editingWorkspace() ? 'Editar Workspace' : 'Criar Workspace' }}
-          </h2>
-
-          @if (error()) {
-            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-              {{ error() }}
-            </div>
-          }
-
-          <div class="space-y-4">
-            <label class="block">
-              <span class="text-sm font-medium text-gray-700">Nome *</span>
-              <input
-                type="text"
-                [ngModel]="workspaceForm().name"
-                (ngModelChange)="updateWorkspaceForm('name', $event)"
-                placeholder="Nome do workspace"
-                class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </label>
-
-            <label class="block">
-              <span class="text-sm font-medium text-gray-700">Tipo</span>
-              <select
-                [ngModel]="workspaceForm().type"
-                (ngModelChange)="updateWorkspaceForm('type', $event)"
-                class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="PROFESSIONAL">Profissional</option>
-                <option value="ACADEMIC">Acadêmico</option>
-              </select>
-            </label>
-
-            <label class="block">
-              <span class="text-sm font-medium text-gray-700">Descrição</span>
-              <textarea
-                [ngModel]="workspaceForm().description"
-                (ngModelChange)="updateWorkspaceForm('description', $event)"
-                rows="4"
-                maxlength="5000"
-                placeholder="Descreva o objetivo do workspace"
-                class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              ></textarea>
-              <span class="text-xs text-gray-500">{{ workspaceForm().description.length }}/5000</span>
-            </label>
-          </div>
-
-          <div class="flex gap-3 justify-end mt-6">
-            <button
-              (click)="closeWorkspaceModal()"
-              class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              (click)="saveWorkspace()"
-              [disabled]="saving()"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              {{ saving() ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
+      <div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+        <h2 class="text-lg font-semibold text-slate-900">{{ editingWorkspace() ? 'Editar espaço' : 'Criar espaço' }}</h2>
+        <div class="mt-4 space-y-4">
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Nome</span>
+            <input [ngModel]="workspaceForm().name" (ngModelChange)="updateWorkspaceForm('name', $event)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Biblioteca Acadêmica" />
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Tipo</span>
+            <select [ngModel]="workspaceForm().type" (ngModelChange)="updateWorkspaceForm('type', $event)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="ACADEMIC">Acadêmico</option>
+              <option value="PROFESSIONAL">Profissional</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Descrição</span>
+            <textarea [ngModel]="workspaceForm().description" (ngModelChange)="updateWorkspaceForm('description', $event)" rows="4" maxlength="5000" class="mt-1 w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
+          </label>
+        </div>
+        <div class="mt-6 flex justify-end gap-2">
+          <button (click)="closeWorkspaceModal()" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button>
+          <button (click)="saveWorkspace()" [disabled]="saving()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{{ saving() ? 'Salvando...' : 'Salvar' }}</button>
         </div>
       </div>
     </div>

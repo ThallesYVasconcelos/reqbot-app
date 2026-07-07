@@ -96,10 +96,10 @@ export class WorkspacesComponent implements OnInit {
   canDeleteWorkspace = computed(() => this.userWorkspaceRole() === 'OWNER');
   canManageMembers = computed(() => {
     const role = this.userWorkspaceRole();
-    return role === 'OWNER' || role === 'ADMIN';
+    return role === 'OWNER';
   });
   canViewAnalytics = computed(() => this.canManageMembers());
-  canCreateWorkspace = computed(() => this.authService.isAdmin());
+  canCreateWorkspace = computed(() => this.authService.isAuthenticated());
   canManageProjects = computed(() => {
     const role = this.userWorkspaceRole();
     return role === 'OWNER' || role === 'ADMIN';
@@ -207,7 +207,7 @@ export class WorkspacesComponent implements OnInit {
   }
 
   goToProject(project: RequirementSet): void {
-    this.router.navigate(this.authService.isAdmin() ? ['/admin/projects', project.id] : ['/chatbot']);
+    this.router.navigate(['/app/projects', project.id]);
   }
 
   joinByCode(): void {
@@ -349,27 +349,23 @@ export class WorkspacesComponent implements OnInit {
     const workspace = this.selectedWorkspace();
     const email = this.memberEmail().trim();
     if (!workspace || !email) {
-      this.error.set('Informe o email do membro');
+      this.error.set('Informe o email do administrador');
       return;
     }
-
-    const request: AddWorkspaceMemberRequest = {
-      userEmail: email,
-      role: this.memberRole()
-    };
 
     this.memberSaving.set(true);
     this.error.set(null);
 
-    this.workspaceService.addMember(workspace.id, request).subscribe({
-      next: () => {
+    this.workspaceService.inviteAdmin(workspace.id, { email }).subscribe({
+      next: (invite) => {
         this.memberSaving.set(false);
         this.memberEmail.set('');
-        this.memberRole.set('MEMBER');
+        this.memberRole.set('ADMIN');
+        this.copyFeedback.set(`Token de convite: ${invite.token}`);
       },
       error: (err) => {
         this.memberSaving.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao adicionar membro'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao criar convite de administrador'));
       }
     });
   }

@@ -1,143 +1,88 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Sidebar -->
+<div class="min-h-screen bg-slate-50 text-slate-900">
   <aside
-    class="fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-gray-800 bg-gray-900 text-white shadow-lg transition-transform duration-300 ease-out lg:max-h-screen"
+    class="fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-slate-800 bg-slate-950 text-white shadow-lg transition-transform duration-300 ease-out"
     [class.-translate-x-full]="!showMenu()"
     [class.translate-x-0]="showMenu()"
     [attr.aria-hidden]="!showMenu() ? 'true' : 'false'"
   >
-    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
-      <div class="mb-6 flex items-center justify-between gap-2">
-        <h2 class="text-xl font-bold leading-tight sm:text-2xl">Requirements AI</h2>
-        <button
-          type="button"
-          (click)="toggleMenu()"
-          class="shrink-0 rounded-lg p-2 text-gray-300 hover:bg-gray-800 hover:text-white lg:hidden"
-          aria-label="Fechar menu"
-        >
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
+      <div class="mb-8 flex items-center justify-between gap-2">
+        <a routerLink="/app/spaces" class="flex items-center gap-3">
+          <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-600 text-sm font-bold">RB</span>
+          <span>
+            <span class="block text-base font-semibold leading-tight">ReqBot</span>
+            <span class="block text-xs text-slate-400">Requisitos com IA</span>
+          </span>
+        </a>
+        <button type="button" (click)="toggleMenu()" class="shrink-0 rounded-lg p-2 text-slate-300 hover:bg-slate-800 hover:text-white lg:hidden" aria-label="Fechar menu">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <nav class="space-y-2">
-        <a
-          routerLink="/admin/dashboard"
-          routerLinkActive="bg-gray-800"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-          </svg>
-          Dashboard
+
+      <nav class="space-y-1 text-sm">
+        <a routerLink="/app/spaces" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+          Espaços
         </a>
-        <a
-          routerLink="/admin/projects"
-          routerLinkActive="bg-gray-800"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-          </svg>
+        <a routerLink="/app/projects" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M6 14h12M8 18h8"/></svg>
           Projetos
         </a>
-        <a
-          routerLink="/admin/workspaces"
-          routerLinkActive="bg-gray-800"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-          </svg>
-          Workspaces
-        </a>
-        <a
-          routerLink="/admin/requirements"
-          routerLinkActive="bg-gray-800"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
+        <a routerLink="/app/requirements" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 3h7l5 5v13H7z"/></svg>
           Requisitos
         </a>
-        <a
-          routerLink="/admin/chatbot"
-          routerLinkActive="bg-gray-800"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-          </svg>
-          Chatbot
+        <a routerLink="/app/chatbots" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a10 10 0 01-4.255-.949L3 20l1.395-3.72A7.25 7.25 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          Chatbots
         </a>
-        <div class="border-t border-gray-700 my-4"></div>
-        <a
-          [routerLink]="['/chatbot']"
-          [queryParams]="{ viewAsUser: 'true' }"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-900/50 hover:bg-blue-800 transition-colors text-blue-200"
-          title="Testar a experiência dos usuários"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
-          Ver como usuário
+        <a routerLink="/app/team" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-1a4 4 0 00-4-4h-1M9 20H4v-1a4 4 0 014-4h1m8-4a4 4 0 10-8 0 4 4 0 008 0z"/></svg>
+          Equipe
+        </a>
+        <a routerLink="/app/metrics" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19V5m4 14v-6m4 6V9m4 10v-9m4 9V7"/></svg>
+          Métricas
         </a>
       </nav>
+
+      <div class="mt-auto border-t border-slate-800 pt-4">
+        <a routerLink="/chatbots/join" class="nav-item bg-blue-600/15 text-blue-100 hover:bg-blue-600/25">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Entrar em chatbot
+        </a>
+      </div>
     </div>
   </aside>
 
   @if (showMenu()) {
-    <div
-      class="fixed inset-0 z-30 bg-black/50 transition-opacity duration-200 lg:hidden"
-      (click)="toggleMenu()"
-      role="presentation"
-    ></div>
+    <div class="fixed inset-0 z-30 bg-black/40 transition-opacity duration-200 lg:hidden" (click)="toggleMenu()" role="presentation"></div>
   }
 
-  <!-- Main Content -->
-  <div
-    class="min-h-screen transition-[margin] duration-300 ease-out"
-    [class.lg:ml-64]="showMenu()"
-  >
-    <!-- Header -->
-    <header
-      class="sticky top-0 z-20 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80"
-    >
-      <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <div class="flex min-w-0 items-center gap-2 sm:gap-4">
-          <button
-            type="button"
-            (click)="toggleMenu()"
-            class="shrink-0 rounded-lg p-2 text-gray-700 hover:bg-gray-100"
-            [attr.aria-expanded]="showMenu()"
-            [attr.aria-label]="showMenu() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'"
-          >
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+  <div class="min-h-screen transition-[margin] duration-300 ease-out" [class.lg:ml-64]="showMenu()">
+    <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div class="flex min-w-0 items-center gap-3">
+          <button type="button" (click)="toggleMenu()" class="shrink-0 rounded-lg p-2 text-slate-700 hover:bg-slate-100" [attr.aria-expanded]="showMenu()" [attr.aria-label]="showMenu() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <h1 class="truncate text-lg font-semibold text-gray-900 sm:text-2xl">Painel Administrativo</h1>
+          <div class="hidden min-w-[260px] items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 md:flex">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 110-15 7.5 7.5 0 010 15z"/></svg>
+            Buscar espaços, projetos ou requisitos
+          </div>
         </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-gray-700">{{ authService.user()?.name }}</span>
-          <button
-            (click)="logout()"
-            class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors"
-          >
+        <div class="flex items-center gap-3">
+          <span class="hidden text-sm text-slate-600 sm:inline">{{ authService.user()?.name }}</span>
+          <button (click)="logout()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             Sair
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Page Content -->
-    <main class="p-6">
+    <main class="mx-auto w-full max-w-7xl p-4 sm:p-6">
       <router-outlet></router-outlet>
     </main>
   </div>

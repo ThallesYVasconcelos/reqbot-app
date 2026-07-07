@@ -1,8 +1,9 @@
 export interface AuthResponse {
-  accessToken: string;  // Backend retorna accessToken, não token
+  accessToken?: string;
+  token?: string;
   tokenType?: string;
   expiresIn?: number;
-  role: 'ADMIN' | 'USER';
+  role?: 'USER';
   email?: string;
   name?: string;
 }
@@ -16,7 +17,7 @@ export interface User {
   email: string;
   name: string;
   pictureUrl: string | null;
-  role: 'ADMIN' | 'USER';
+  role: 'USER';
   createdAt: string;
   updatedAt: string;
 }
