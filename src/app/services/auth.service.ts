@@ -127,8 +127,8 @@ export class AuthService {
       if (!isPlatformBrowser(this.platformId)) return;
 
       this.workspaceService.loadWorkspaces().subscribe({
-        next: () => this.navigateAfterLogin(mode === 'manager' ? '/app/spaces' : '/chatbots/join'),
-        error: () => this.navigateAfterLogin(mode === 'manager' ? '/app/spaces' : '/chatbots/join')
+        next: () => this.navigateAfterLogin(mode === 'manager' ? '/app/home' : '/chatbots/join'),
+        error: () => this.navigateAfterLogin(mode === 'manager' ? '/app/home' : '/chatbots/join')
       });
     }, 100);
   }

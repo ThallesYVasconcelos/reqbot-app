@@ -1,11 +1,11 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-3xl font-bold text-gray-800">Gestão de Requisitos</h1>
-    <div class="flex gap-3">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl font-bold text-gray-800 sm:text-3xl">Gestao de Requisitos</h1>
+    <div class="flex flex-col gap-3 min-[420px]:flex-row">
       <button
         (click)="openReportModal()"
         [disabled]="!selectedProjectId() || selectedProjectId() === 'all'"
-        class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -15,7 +15,7 @@
       <button
         (click)="openCreateModal()"
         [disabled]="!selectedProjectId() || selectedProjectId() === 'all'"
-        class="px-6 py-3 bg-blue-400 hover:bg-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-md transition-colors"
+        class="min-h-11 rounded-lg bg-blue-400 px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-gray-300"
       >
         + Novo Requisito
       </button>
@@ -24,18 +24,6 @@
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow p-4 space-y-4">
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Workspace *</label>
-      <select
-        [ngModel]="selectedWorkspaceId()"
-        (ngModelChange)="onWorkspaceChange($event)"
-        class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
-      >
-        @for (w of workspaceList(); track w.id) {
-          <option [ngValue]="w.id">{{ w.name }}</option>
-        }
-      </select>
-    </div>
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">Projeto (atividade) *</label>
       <select
@@ -49,7 +37,7 @@
           <option [ngValue]="project.id">{{ project.name }}</option>
         }
       </select>
-      <p class="text-xs text-gray-500 mt-1">Os projetos vêm do workspace selecionado.</p>
+      <p class="text-xs text-gray-500 mt-1">Os projetos vêm do seu ambiente.</p>
     </div>
   </div>
 

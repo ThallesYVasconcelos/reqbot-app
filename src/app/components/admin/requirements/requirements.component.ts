@@ -56,7 +56,7 @@ export class RequirementsComponent implements OnInit {
       next: (workspaces) => {
         this.workspaceList.set(workspaces);
         if (workspaces.length === 0) {
-          this.error.set('Crie um workspace e projetos para gerir requisitos.');
+          this.error.set('Crie um ambiente e projetos para gerir requisitos.');
           return;
         }
         const stored = this.workspaceService.selectedWorkspaceId();
@@ -67,7 +67,7 @@ export class RequirementsComponent implements OnInit {
         this.loadProjectsForWorkspace(wsId, projectId, openCreate);
       },
       error: (err) => {
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar workspaces'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar ambiente'));
       }
     });
   }
@@ -102,7 +102,7 @@ export class RequirementsComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar projetos do workspace'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar projetos do ambiente'));
       }
     });
   }

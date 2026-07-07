@@ -1,12 +1,12 @@
 <div class="flex min-h-screen bg-slate-50 text-slate-900">
   <aside class="hidden w-72 flex-col border-r border-slate-200 bg-white p-4 md:flex">
     <div class="mb-5 flex items-center justify-between">
-      <a routerLink="/app/spaces" class="text-sm font-semibold text-slate-900">ReqBot</a>
+      <a routerLink="/app/home" class="text-sm font-semibold text-slate-900">ReqBot</a>
       <button (click)="logout()" class="text-sm text-slate-500 hover:text-slate-900">Sair</button>
     </div>
 
     <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <label class="text-xs font-medium uppercase tracking-wide text-slate-500">Código de acesso</label>
+      <label class="text-xs font-medium uppercase tracking-wide text-slate-500">Codigo de acesso</label>
       <div class="mt-2 flex gap-2">
         <input [ngModel]="joinCode()" (ngModelChange)="joinCode.set($event)" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase tracking-widest" placeholder="ABC123" />
         <button (click)="joinChatbot()" [disabled]="joining()" class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Entrar</button>
@@ -39,10 +39,34 @@
           <h1 class="text-lg font-semibold text-slate-900">{{ activeChatbot()?.name || 'Entrar em chatbot' }}</h1>
         </div>
         <div class="flex items-center gap-2">
-          <button (click)="goToSpaces()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Espaços</button>
+          <button (click)="goToSpaces()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ambiente</button>
         </div>
       </div>
     </header>
+
+    <section class="border-b border-slate-200 bg-white p-4 md:hidden">
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <label class="text-xs font-medium uppercase tracking-wide text-slate-500">Codigo de acesso</label>
+        <div class="mt-2 flex flex-col gap-2 min-[420px]:flex-row">
+          <input [ngModel]="joinCode()" (ngModelChange)="joinCode.set($event)" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase tracking-widest" placeholder="ABC123" />
+          <button (click)="joinChatbot()" [disabled]="joining()" class="min-h-11 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Entrar</button>
+        </div>
+      </div>
+
+      @if (chatbots().length > 0) {
+        <div class="mt-4">
+          <p class="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Meus chatbots</p>
+          <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            @for (chatbot of chatbots(); track chatbot.id) {
+              <button (click)="selectChatbot(chatbot.id)" class="min-w-44 rounded-lg border px-3 py-2 text-left text-sm transition" [class.border-blue-200]="activeChatbotId() === chatbot.id" [class.bg-blue-50]="activeChatbotId() === chatbot.id" [class.text-blue-700]="activeChatbotId() === chatbot.id" [class.border-slate-200]="activeChatbotId() !== chatbot.id" [class.bg-white]="activeChatbotId() !== chatbot.id">
+                <span class="block truncate font-medium">{{ chatbot.name }}</span>
+                <span class="block truncate text-xs text-slate-500">{{ chatbot.requirementSetName || 'Projeto vinculado' }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </section>
 
     @if (error()) {
       <div class="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</div>
@@ -50,8 +74,8 @@
 
     @if (chatbots().length === 0 && !bootLoading()) {
       <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6 text-center">
-        <p class="text-sm font-medium text-slate-900">Entre com o código do chatbot</p>
-        <p class="mt-1 text-sm text-slate-500">Use o código compartilhado pelo dono ou administrador do espaço.</p>
+        <p class="text-sm font-medium text-slate-900">Entre com o codigo do chatbot</p>
+        <p class="mt-1 text-sm text-slate-500">Use o codigo compartilhado pelo owner ou administrador.</p>
         <div class="mt-5 flex gap-2">
           <input [ngModel]="joinCode()" (ngModelChange)="joinCode.set($event)" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-center font-mono uppercase tracking-widest" placeholder="ABC123" />
           <button (click)="joinChatbot()" [disabled]="joining()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Entrar</button>
@@ -61,8 +85,11 @@
       <div class="flex-1 overflow-y-auto p-4 sm:p-6">
         @if (messages().length === 0) {
           <div class="mx-auto max-w-xl py-16 text-center">
-            <p class="text-sm font-medium text-slate-900">Faça uma pergunta sobre o projeto.</p>
+            <p class="text-sm font-medium text-slate-900">Faca uma pergunta sobre o projeto.</p>
             <p class="mt-1 text-sm text-slate-500">As respostas usam os requisitos vinculados ao chatbot selecionado.</p>
+            @if (chatbotUnavailableMessage()) {
+              <p class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{{ chatbotUnavailableMessage() }}</p>
+            }
           </div>
         }
 
@@ -70,7 +97,7 @@
           @for (message of messages(); track $index) {
             <div class="flex" [class.justify-end]="message.isUser">
               <div class="max-w-[85%] rounded-lg border px-4 py-3 text-sm" [class.border-blue-600]="message.isUser" [class.bg-blue-600]="message.isUser" [class.text-white]="message.isUser" [class.border-slate-200]="!message.isUser" [class.bg-white]="!message.isUser" [class.text-slate-800]="!message.isUser">
-                <p class="mb-1 text-xs font-semibold opacity-75">{{ message.isUser ? 'Você' : 'ReqBot' }}</p>
+                <p class="mb-1 text-xs font-semibold opacity-75">{{ message.isUser ? 'Voce' : 'ReqBot' }}</p>
                 <p class="whitespace-pre-wrap">{{ message.isUser ? message.question : message.answer }}</p>
               </div>
             </div>
@@ -82,12 +109,12 @@
       </div>
 
       <form (ngSubmit)="sendMessage()" class="border-t border-slate-200 bg-white p-4">
-        <div class="mx-auto flex max-w-3xl gap-3">
+        <div class="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row">
           <input [ngModel]="currentQuestion()" (ngModelChange)="currentQuestion.set($event)" name="question" [disabled]="loading() || !canSendMessage()" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Digite sua pergunta..." />
-          <button type="submit" [disabled]="loading() || !currentQuestion().trim() || !canSendMessage()" class="rounded-lg bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">Enviar</button>
+          <button type="submit" [disabled]="loading() || !currentQuestion().trim() || !canSendMessage()" class="min-h-11 rounded-lg bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">Enviar</button>
         </div>
-        @if (activeChatbot() && !canSendMessage()) {
-          <p class="mx-auto mt-2 max-w-3xl text-xs text-slate-500">Este chatbot está inativo ou fora do horário configurado.</p>
+        @if (chatbotUnavailableMessage()) {
+          <p class="mx-auto mt-2 max-w-3xl rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">{{ chatbotUnavailableMessage() }}</p>
         }
       </form>
     }

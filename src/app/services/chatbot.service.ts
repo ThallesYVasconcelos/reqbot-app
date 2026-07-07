@@ -9,7 +9,7 @@ import {
   JoinChatbotRequest,
   WorkspaceChatResponse
 } from '../models/chatbot.model';
-import { ChatMessageDTO } from '../models/workspace.model';
+import { ChatMessageDTO, ChatQuestionClusterDTO } from '../models/workspace.model';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +32,22 @@ export class ChatbotService {
 
   getWorkspaceChatbotHistory(workspaceId: string, chatbotId: string): Observable<ChatMessageDTO[]> {
     return this.api.get<ChatMessageDTO[]>(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/history`);
+  }
+
+  getWorkspaceChatbotQuestionRanking(
+    workspaceId: string,
+    chatbotId: string,
+    limit: number,
+    similarityThreshold: number
+  ): Observable<ChatQuestionClusterDTO[]> {
+    const params = new HttpParams()
+      .set('limit', limit)
+      .set('similarityThreshold', similarityThreshold);
+
+    return this.api.get<ChatQuestionClusterDTO[]>(
+      `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/question-ranking`,
+      params
+    );
   }
 
   joinByCode(request: JoinChatbotRequest): Observable<ChatbotConfig> {
@@ -60,7 +76,7 @@ export class ChatbotService {
             subscriber.next(active);
             subscriber.complete();
           } else {
-            subscriber.error({ status: 404, error: { message: 'Nenhum chatbot configurado para este espaço' } });
+            subscriber.error({ status: 404, error: { message: 'Nenhum chatbot configurado para este ambiente' } });
           }
         },
         error: err => subscriber.error(err)

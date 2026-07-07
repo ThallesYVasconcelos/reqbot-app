@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
     <div>
-      <p class="text-sm text-slate-500">Espaços / Projetos</p>
+      <p class="text-sm text-slate-500">Ambiente / Projetos</p>
       <h1 class="mt-1 text-2xl font-semibold text-slate-900">Projetos</h1>
       <p class="mt-1 text-sm text-slate-600">Gerencie requisitos, chatbots e histórico de perguntas.</p>
     </div>
@@ -14,23 +14,6 @@
     </button>
   </div>
 
-  @if (workspaces().length > 0) {
-    <section class="rounded-lg border border-slate-200 bg-white p-4">
-      <label class="block max-w-xl">
-        <span class="text-sm font-medium text-slate-700">Espaço</span>
-        <select
-          [ngModel]="selectedWorkspaceId()"
-          (ngModelChange)="onWorkspaceChange($event)"
-          class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        >
-          @for (w of workspaces(); track w.id) {
-            <option [ngValue]="w.id">{{ w.name }}</option>
-          }
-        </select>
-      </label>
-    </section>
-  }
-
   @if (error()) {
     <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{{ error() }}</div>
   }
@@ -39,19 +22,19 @@
     <div class="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Carregando projetos...</div>
   } @else if (workspaces().length === 0) {
     <div class="rounded-lg border border-slate-200 bg-white p-10 text-center">
-      <p class="text-sm font-medium text-slate-900">Nenhum espaço disponível.</p>
-      <p class="mt-1 text-sm text-slate-500">Crie um espaço para começar a organizar projetos.</p>
-      <a routerLink="/app/spaces" class="mt-4 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar espaço</a>
+      <p class="text-sm font-medium text-slate-900">Nenhum ambiente disponivel.</p>
+      <p class="mt-1 text-sm text-slate-500">Crie seu ambiente para comecar a organizar projetos.</p>
+      <a routerLink="/app/home" class="mt-4 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar ambiente</a>
     </div>
   } @else if (projects().length === 0) {
     <div class="rounded-lg border border-slate-200 bg-white p-10 text-center">
-      <p class="text-sm font-medium text-slate-900">Nenhum projeto neste espaço.</p>
+      <p class="text-sm font-medium text-slate-900">Nenhum projeto neste ambiente.</p>
       <p class="mt-1 text-sm text-slate-500">Crie o primeiro projeto para adicionar requisitos e chatbots.</p>
       <button (click)="openCreateModal()" class="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar projeto</button>
     </div>
   } @else {
-    <section class="overflow-hidden rounded-lg border border-slate-200 bg-white">
-      <table class="min-w-full divide-y divide-slate-200">
+    <section class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <table class="min-w-[760px] divide-y divide-slate-200">
         <thead class="bg-slate-50">
           <tr>
             <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">Nome</th>

@@ -3,19 +3,24 @@ import { chatbotGuard, managerGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: 'login/admin',
+    loadComponent: () => import('./components/login/login-admin/login-admin.component').then(m => m.LoginAdminComponent)
+  },
+  {
+    path: 'login/user',
+    loadComponent: () => import('./components/login/login-user/login-user.component').then(m => m.LoginUserComponent)
+  },
+  {
     path: 'login',
-    loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent),
-    children: [
-      { path: '', redirectTo: 'admin', pathMatch: 'full' },
-      { path: 'admin', loadComponent: () => import('./components/login/login-admin/login-admin.component').then(m => m.LoginAdminComponent) },
-      { path: 'user', loadComponent: () => import('./components/login/login-user/login-user.component').then(m => m.LoginUserComponent) }
-    ]
+    redirectTo: '/login/admin',
+    pathMatch: 'full'
   },
   {
     path: 'app',
     canActivate: [managerGuard],
     loadComponent: () => import('./components/admin/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
+      { path: 'home', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: 'spaces', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: 'spaces/:workspaceId/projects', loadComponent: () => import('./components/admin/projects/projects.component').then(m => m.ProjectsComponent) },
       { path: 'spaces/:workspaceId/team', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
@@ -26,7 +31,7 @@ export const routes: Routes = [
       { path: 'chatbots', loadComponent: () => import('./components/admin/chatbot-config/chatbot-config.component').then(m => m.ChatbotConfigComponent) },
       { path: 'team', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: 'metrics', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
-      { path: '', redirectTo: 'spaces', pathMatch: 'full' }
+      { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   },
   {
@@ -41,12 +46,12 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    redirectTo: '/app/spaces',
+    redirectTo: '/app/home',
     pathMatch: 'full'
   },
   {
     path: 'admin/:path',
-    redirectTo: '/app/spaces'
+    redirectTo: '/app/home'
   },
   {
     path: 'chatbot',
@@ -55,7 +60,7 @@ export const routes: Routes = [
   },
   {
     path: 'workspaces',
-    redirectTo: '/app/spaces',
+    redirectTo: '/app/home',
     pathMatch: 'full'
   },
   {

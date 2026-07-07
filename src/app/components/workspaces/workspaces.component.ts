@@ -2,26 +2,39 @@ import { Component, OnInit, computed, inject, PLATFORM_ID, signal } from '@angul
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { WorkspaceService } from '../../services/workspace.service';
+import { ChatbotService } from '../../services/chatbot.service';
 import { ConfirmModalComponent } from '../shared/confirm-modal/confirm-modal.component';
 import { Router } from '@angular/router';
 import {
   AddWorkspaceMemberRequest,
-  ChatMessageDTO,
   ChatQuestionClusterDTO,
   CreateWorkspaceRequest,
+  ProjectUserDTO,
   UpdateWorkspaceRequest,
   WorkspaceDTO,
   WorkspaceRole,
   WorkspaceType
 } from '../../models/workspace.model';
 import { RequirementSet, CreateRequirementSetRequest } from '../../models/requirement-set.model';
+import { ChatbotConfig } from '../../models/chatbot.model';
 
 type WorkspaceForm = {
   name: string;
   description: string;
   type: WorkspaceType;
+};
+
+type ProjectUsersResult = {
+  projectId: string;
+  users: ProjectUserDTO[];
+};
+
+type ChatbotRankingResult = {
+  chatbotId: string;
+  ranking: ChatQuestionClusterDTO[];
 };
 
 @Component({
@@ -33,6 +46,7 @@ type WorkspaceForm = {
 })
 export class WorkspacesComponent implements OnInit {
   private workspaceService = inject(WorkspaceService);
+  private chatbotService = inject(ChatbotService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   readonly authService = inject(AuthService);
@@ -45,7 +59,7 @@ export class WorkspacesComponent implements OnInit {
   saving = signal(false);
   error = signal<string | null>(null);
   analyticsError = signal<string | null>(null);
-  activeTab = signal<'details' | 'projects' | 'history' | 'ranking'>('details');
+  activeTab = signal<'details' | 'projects' | 'ranking'>('details');
 
   joinCodeInput = signal('');
   joinLoading = signal(false);
@@ -73,12 +87,26 @@ export class WorkspacesComponent implements OnInit {
   memberRole = signal<Exclude<WorkspaceRole, 'OWNER'>>('MEMBER');
   memberSaving = signal(false);
 
-  history = signal<ChatMessageDTO[]>([]);
-  ranking = signal<ChatQuestionClusterDTO[]>([]);
+  chatbots = signal<ChatbotConfig[]>([]);
+  projectUsers = signal<Record<string, ProjectUserDTO[]>>({});
+  chatbotRankings = signal<Record<string, ChatQuestionClusterDTO[]>>({});
   analyticsLoading = signal(false);
   rankingLimit = signal(10);
   similarityThreshold = signal(0.82);
   expandedRank = signal<number | null>(null);
+
+  questionsByProject = computed(() =>
+    this.projects().map(project => ({
+      project,
+      users: this.projectUsers()[project.id] ?? [],
+      chatbots: this.chatbots()
+        .filter(chatbot => chatbot.requirementSetId === project.id)
+        .map(chatbot => ({
+          chatbot,
+          ranking: this.chatbotRankings()[chatbot.id] ?? []
+        }))
+    }))
+  );
 
   userWorkspaceRole = computed<WorkspaceRole | null>(() => {
     const workspace = this.selectedWorkspace();
@@ -99,17 +127,13 @@ export class WorkspacesComponent implements OnInit {
     return role === 'OWNER';
   });
   canViewAnalytics = computed(() => this.canManageMembers());
-  canCreateWorkspace = computed(() => this.authService.isAuthenticated());
+  canCreateWorkspace = computed(() => this.authService.isAuthenticated() && this.workspaces().length === 0);
   canManageProjects = computed(() => {
     const role = this.userWorkspaceRole();
     return role === 'OWNER' || role === 'ADMIN';
   });
   /** Membros comuns não veem gestão do workspace (convite, abas, analytics). */
   isMemberOnly = computed(() => this.userWorkspaceRole() === 'MEMBER');
-
-  messageTimestamp(m: ChatMessageDTO): string {
-    return m.askedAt || m.answeredAt || '';
-  }
 
   ngOnInit(): void {
     this.loadWorkspaces();
@@ -128,7 +152,7 @@ export class WorkspacesComponent implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar workspaces'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar ambiente'));
       }
     });
   }
@@ -136,13 +160,13 @@ export class WorkspacesComponent implements OnInit {
   selectWorkspace(id: string): void {
     this.workspaceService.selectWorkspace(id);
     this.analyticsError.set(null);
-    this.history.set([]);
-    this.ranking.set([]);
+    this.chatbots.set([]);
+    this.projectUsers.set({});
+    this.chatbotRankings.set({});
     this.loadWorkspaceProjects();
 
     if (this.canViewAnalytics()) {
-      this.loadHistory();
-      this.loadRanking();
+      this.loadQuestions();
     }
   }
 
@@ -243,6 +267,10 @@ export class WorkspacesComponent implements OnInit {
   }
 
   openCreateWorkspaceModal(): void {
+    if (!this.canCreateWorkspace()) {
+      this.error.set('Esta conta ja possui um ambiente.');
+      return;
+    }
     this.editingWorkspace.set(null);
     this.workspaceForm.set({ name: '', description: '', type: 'PROFESSIONAL' });
     this.error.set(null);
@@ -273,8 +301,12 @@ export class WorkspacesComponent implements OnInit {
 
   saveWorkspace(): void {
     const form = this.workspaceForm();
+    if (!this.editingWorkspace() && !this.canCreateWorkspace()) {
+      this.error.set('Esta conta ja possui um ambiente.');
+      return;
+    }
     if (!form.name.trim()) {
-      this.error.set('Nome do workspace é obrigatório');
+      this.error.set('Nome do ambiente e obrigatorio');
       return;
     }
 
@@ -299,7 +331,7 @@ export class WorkspacesComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao salvar workspace'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao salvar ambiente'));
       }
     });
   }
@@ -316,7 +348,7 @@ export class WorkspacesComponent implements OnInit {
 
   getDeleteConfirmMessage(): string {
     const target = this.deleteTarget();
-    return target ? `Tem certeza que deseja excluir o workspace "${target.name}"?` : '';
+    return target ? `Tem certeza que deseja excluir o ambiente "${target.name}"?` : '';
   }
 
   confirmDeleteWorkspace(): void {
@@ -334,13 +366,14 @@ export class WorkspacesComponent implements OnInit {
         if (nextWorkspace) {
           this.selectWorkspace(nextWorkspace.id);
         } else {
-          this.history.set([]);
-          this.ranking.set([]);
+          this.chatbots.set([]);
+          this.projectUsers.set({});
+          this.chatbotRankings.set({});
         }
       },
       error: (err) => {
         this.saving.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao excluir workspace'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao excluir ambiente'));
       }
     });
   }
@@ -386,63 +419,103 @@ export class WorkspacesComponent implements OnInit {
     });
   }
 
-  loadHistory(): void {
+  loadQuestions(): void {
     const workspace = this.selectedWorkspace();
     if (!workspace) return;
 
     this.analyticsLoading.set(true);
     this.analyticsError.set(null);
 
-    this.workspaceService.getChatHistory(workspace.id).subscribe({
-      next: (history) => {
-        this.history.set(history);
-        this.analyticsLoading.set(false);
+    forkJoin({
+      projects: this.workspaceService.listRequirementSets(workspace.id),
+      chatbots: this.chatbotService.getWorkspaceChatbots(workspace.id)
+    }).subscribe({
+      next: ({ projects, chatbots }) => {
+        this.projects.set(projects);
+        this.chatbots.set(chatbots);
+
+        const userRequests = projects.map(project =>
+          this.workspaceService.getRequirementSetUsers(workspace.id, project.id).pipe(
+            map(users => ({ projectId: project.id, users }) as ProjectUsersResult),
+            catchError(() => of({ projectId: project.id, users: [] } as ProjectUsersResult))
+          )
+        );
+
+        const rankingRequests = chatbots.map(chatbot =>
+          this.chatbotService
+            .getWorkspaceChatbotQuestionRanking(
+              workspace.id,
+              chatbot.id,
+              this.rankingLimit(),
+              this.similarityThreshold()
+            )
+            .pipe(
+              map(ranking => ({ chatbotId: chatbot.id, ranking }) as ChatbotRankingResult),
+              catchError(() => of({ chatbotId: chatbot.id, ranking: [] } as ChatbotRankingResult))
+            )
+        );
+
+        const users$ = userRequests.length ? forkJoin(userRequests) : of([] as ProjectUsersResult[]);
+        const rankings$ = rankingRequests.length ? forkJoin(rankingRequests) : of([] as ChatbotRankingResult[]);
+
+        forkJoin({ users: users$, rankings: rankings$ }).subscribe({
+          next: ({ users, rankings }) => {
+            this.projectUsers.set(
+              users.reduce<Record<string, ProjectUserDTO[]>>((acc, item) => {
+                acc[item.projectId] = item.users;
+                return acc;
+              }, {})
+            );
+            this.chatbotRankings.set(
+              rankings.reduce<Record<string, ChatQuestionClusterDTO[]>>((acc, item) => {
+                acc[item.chatbotId] = item.ranking;
+                return acc;
+              }, {})
+            );
+          },
+          error: (err) => this.handleAnalyticsError(err, 'Erro ao carregar perguntas dos chatbots'),
+          complete: () => this.analyticsLoading.set(false)
+        });
       },
       error: (err) => {
+        this.projects.set([]);
+        this.chatbots.set([]);
+        this.projectUsers.set({});
+        this.chatbotRankings.set({});
         this.analyticsLoading.set(false);
-        this.handleAnalyticsError(err, 'Erro ao carregar histórico do chat');
+        this.handleAnalyticsError(err, 'Erro ao carregar perguntas dos projetos');
       }
     });
   }
 
   loadRanking(): void {
-    const workspace = this.selectedWorkspace();
-    if (!workspace) return;
-
-    this.analyticsLoading.set(true);
-    this.analyticsError.set(null);
-
-    this.workspaceService
-      .getQuestionRanking(workspace.id, this.rankingLimit(), this.similarityThreshold())
-      .subscribe({
-        next: (ranking) => {
-          this.ranking.set(ranking);
-          this.analyticsLoading.set(false);
-        },
-        error: (err) => {
-          this.analyticsLoading.set(false);
-          this.handleAnalyticsError(err, 'Erro ao carregar ranking de perguntas');
-        }
-      });
+    this.loadQuestions();
   }
 
   applyRankingFilters(): void {
-    this.loadRanking();
+    this.loadQuestions();
   }
 
-  setActiveTab(tab: 'details' | 'projects' | 'history' | 'ranking'): void {
+  setActiveTab(tab: 'details' | 'projects' | 'ranking'): void {
     this.activeTab.set(tab);
 
     if (tab === 'projects') {
       this.loadWorkspaceProjects();
     }
     if (!this.canViewAnalytics()) return;
-    if (tab === 'history' && this.history().length === 0) this.loadHistory();
-    if (tab === 'ranking' && this.ranking().length === 0) this.loadRanking();
+    if (tab === 'ranking') this.loadQuestions();
   }
 
   toggleRank(rank: number): void {
     this.expandedRank.update(current => current === rank ? null : rank);
+  }
+
+  isChatbotActive(chatbot: ChatbotConfig): boolean {
+    return chatbot.isActive === true || chatbot.active === true;
+  }
+
+  formatJoinedAt(joinedAt: string): string {
+    return joinedAt || '';
   }
 
   roleLabel(role: WorkspaceRole): string {
@@ -460,7 +533,7 @@ export class WorkspacesComponent implements OnInit {
 
   private handleAnalyticsError(err: any, fallback: string): void {
     if (err.status === 403) {
-      this.analyticsError.set('Sem permissão para ver analytics deste workspace');
+      this.analyticsError.set('Sem permissao para ver metricas deste ambiente');
       return;
     }
     this.analyticsError.set(this.getUserFriendlyError(err, fallback));

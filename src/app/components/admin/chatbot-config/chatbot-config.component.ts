@@ -36,7 +36,7 @@ export class ChatbotConfigComponent implements OnInit {
 
   breadcrumb = computed(() => {
     const workspace = this.selectedWorkspace();
-    return workspace ? `Espaços / ${workspace.name}` : 'Espaços / Chatbots';
+    return workspace ? `Ambiente / ${workspace.name}` : 'Ambiente / Chatbots';
   });
 
   ngOnInit(): void {
@@ -51,7 +51,7 @@ export class ChatbotConfigComponent implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar espaços'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar ambiente'));
       }
     });
   }
@@ -69,7 +69,7 @@ export class ChatbotConfigComponent implements OnInit {
   createChatbot(): void {
     const workspaceId = this.selectedWorkspaceId();
     if (!workspaceId) {
-      this.error.set('Selecione um espaço');
+      this.error.set('Crie um ambiente antes de configurar chatbots');
       return;
     }
     if (!this.name().trim()) {
@@ -110,7 +110,7 @@ export class ChatbotConfigComponent implements OnInit {
   toggleChatbot(chatbot: ChatbotConfig): void {
     const workspaceId = this.selectedWorkspaceId();
     if (!workspaceId) return;
-    const nextState = !(chatbot.isActive ?? chatbot.active);
+    const nextState = !this.isActive(chatbot);
     this.chatbotService.toggleWorkspaceChatbot(workspaceId, chatbot.id, nextState).subscribe({
       next: () => this.loadChatbots(workspaceId),
       error: (err) => this.error.set(this.getUserFriendlyError(err, 'Erro ao alterar status do chatbot'))
@@ -118,7 +118,7 @@ export class ChatbotConfigComponent implements OnInit {
   }
 
   isActive(chatbot: ChatbotConfig): boolean {
-    return Boolean(chatbot.isActive ?? chatbot.active);
+    return chatbot.isActive === true || chatbot.active === true;
   }
 
   copyAccessCode(code: string): void {

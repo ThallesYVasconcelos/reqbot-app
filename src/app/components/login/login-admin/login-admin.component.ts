@@ -25,7 +25,7 @@ export class LoginAdminComponent implements OnInit {
     private router: Router
   ) {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.authService.getSessionMode() === 'user' ? '/chatbots/join' : '/app/spaces']);
+      this.router.navigate([this.authService.getSessionMode() === 'user' ? '/chatbots/join' : '/app/home']);
     }
   }
 

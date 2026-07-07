@@ -1,22 +1,55 @@
-@if (loading()) {
-  <div class="auth-loading">
-    <svg class="animate-spin h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <span class="ml-3 text-gray-300">Processando login...</span>
-  </div>
-} @else {
-  <div class="auth-content">
-    <p class="auth-hint">Acesso apenas para entrar em chatbots por código e fazer perguntas.</p>
-    <div id="google-signin-button-user" class="google-button-container"></div>
-    @if (error()) {
-      <p class="auth-error">{{ error() }}</p>
-    }
-    @if (!googleAvailable()) {
-      <p class="auth-hint">Carregando Google OAuth...</p>
+<main class="auth-page auth-page-user">
+  <section class="auth-card" aria-label="Login usuario">
+    <a routerLink="/login/user" class="brand compact">
+      <span class="brand-mark">RB</span>
+      <span>
+        <strong>ReqBot Chat</strong>
+        <small>acesso para usuarios</small>
+      </span>
+    </a>
+
+    <div>
+      <p class="eyebrow">Usuario de chatbot</p>
+      <h1>Entre para acessar seus chatbots.</h1>
+      <p class="card-copy">
+        Este acesso mostra somente chatbots vinculados por codigo. Voce nao vera projetos,
+        equipe ou configuracoes administrativas.
+      </p>
+    </div>
+
+    @if (loading()) {
+      <div class="auth-loading">
+        <svg class="animate-spin h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Processando login...</span>
+      </div>
     } @else {
-      <p class="auth-security">Você verá somente seus chatbots vinculados.</p>
+      <div class="auth-content">
+        <div id="google-signin-button-user" class="google-button-container"></div>
+        @if (error()) {
+          <p class="auth-error">{{ error() }}</p>
+        }
+        @if (!googleAvailable()) {
+          <p class="auth-hint">Carregando Google OAuth...</p>
+        } @else {
+          <p class="auth-security">Depois do login, cole o codigo recebido para entrar no chatbot.</p>
+        }
+      </div>
     }
-  </div>
-}
+
+    <div class="switch-profile">
+      <span>Voce gerencia projetos e chatbots?</span>
+      <a routerLink="/login/admin">Entrar como admin</a>
+    </div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="chat-preview" aria-hidden="true">
+      <div class="bubble user">Qual requisito cobre o fluxo de pagamento?</div>
+      <div class="bubble bot">O requisito RF-08 descreve validacao, confirmacao e retorno do pagamento.</div>
+      <div class="bubble status">Somente chatbots ativos aceitam perguntas.</div>
+    </div>
+  </section>
+</main>

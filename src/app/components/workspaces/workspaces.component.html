@@ -2,14 +2,16 @@
   <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
     <div>
       <p class="text-sm text-slate-500">
-        Espaços@if (selectedWorkspace(); as workspace) { / {{ workspace.name }} }
+        Ambiente@if (selectedWorkspace(); as workspace) { / {{ workspace.name }} }
       </p>
-      <h1 class="mt-1 text-2xl font-semibold text-slate-900">Espaços</h1>
-      <p class="mt-1 text-sm text-slate-600">Organize projetos, requisitos, chatbots e perguntas por contexto.</p>
+      <h1 class="mt-1 text-2xl font-semibold text-slate-900">Ambiente</h1>
+      <p class="mt-1 text-sm text-slate-600">Gerencie o unico ambiente da sua conta: projetos, requisitos, chatbots e perguntas.</p>
     </div>
-    <button (click)="openCreateWorkspaceModal()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-      Criar espaço
-    </button>
+    @if (canCreateWorkspace()) {
+      <button (click)="openCreateWorkspaceModal()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        Criar ambiente
+      </button>
+    }
   </div>
 
   @if (error()) {
@@ -20,18 +22,18 @@
   }
 
   @if (loading()) {
-    <div class="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Carregando espaços...</div>
+    <div class="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Carregando ambiente...</div>
   } @else if (workspaces().length === 0) {
     <section class="rounded-lg border border-slate-200 bg-white p-8">
       <div class="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
         <div class="rounded-lg border border-slate-200 p-5">
-          <p class="text-sm font-medium text-slate-900">Criar espaço</p>
-          <p class="mt-2 text-sm text-slate-500">Use esta opção quando você será o OWNER do espaço.</p>
-          <button (click)="openCreateWorkspaceModal()" class="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar espaço</button>
+          <p class="text-sm font-medium text-slate-900">Criar ambiente</p>
+          <p class="mt-2 text-sm text-slate-500">Use esta opcao quando voce sera o OWNER do ambiente.</p>
+          <button (click)="openCreateWorkspaceModal()" class="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar ambiente</button>
         </div>
         <div class="rounded-lg border border-slate-200 p-5">
           <p class="text-sm font-medium text-slate-900">Aceitar convite de admin</p>
-          <p class="mt-2 text-sm text-slate-500">Cole o token enviado pelo OWNER para virar ADMIN neste espaço.</p>
+          <p class="mt-2 text-sm text-slate-500">Cole o token enviado pelo OWNER para virar ADMIN neste ambiente.</p>
           <div class="mt-4 flex flex-col gap-2 sm:flex-row">
             <input [ngModel]="joinCodeInput()" (ngModelChange)="joinCodeInput.set($event)" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Token do convite" />
             <button (click)="joinByCode()" [disabled]="joinLoading()" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
@@ -46,7 +48,7 @@
       <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p class="text-sm font-medium text-slate-900">Recebeu um convite de admin?</p>
-          <p class="text-sm text-slate-500">Cole o token para adicionar este espaço à sua conta.</p>
+          <p class="text-sm text-slate-500">Cole o token para acessar o ambiente como administrador.</p>
         </div>
         <div class="flex flex-col gap-2 sm:flex-row">
           <input [ngModel]="joinCodeInput()" (ngModelChange)="joinCodeInput.set($event)" class="min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Token do convite" />
@@ -57,10 +59,10 @@
       </div>
     </section>
 
-    <div class="grid gap-6 xl:grid-cols-[300px_1fr]">
-      <aside class="rounded-lg border border-slate-200 bg-white">
+    <div class="grid gap-6">
+      <aside class="hidden">
         <div class="border-b border-slate-200 p-4">
-          <p class="text-sm font-semibold text-slate-900">Meus espaços</p>
+          <p class="text-sm font-semibold text-slate-900">Ambiente</p>
         </div>
         <div class="divide-y divide-slate-100">
           @for (workspace of workspaces(); track workspace.id) {
@@ -110,7 +112,6 @@
               <button (click)="setActiveTab('projects')" class="tab-button" [class.active]="activeTab() === 'projects'">Projetos</button>
               <button (click)="setActiveTab('details')" class="tab-button" [class.active]="activeTab() === 'details'">Equipe</button>
               <button (click)="setActiveTab('ranking')" class="tab-button" [class.active]="activeTab() === 'ranking'">Perguntas</button>
-              <button (click)="setActiveTab('history')" class="tab-button" [class.active]="activeTab() === 'history'">Histórico</button>
             </div>
 
             <div class="p-5">
@@ -128,7 +129,7 @@
                   @if (projectsLoading()) {
                     <p class="text-sm text-slate-500">Carregando projetos...</p>
                   } @else if (projects().length === 0) {
-                    <div class="rounded-lg border border-dashed border-slate-300 p-6 text-sm text-slate-500">Nenhum projeto neste espaço.</div>
+                    <div class="rounded-lg border border-dashed border-slate-300 p-6 text-sm text-slate-500">Nenhum projeto neste ambiente.</div>
                   } @else {
                     <div class="grid gap-3 md:grid-cols-2">
                       @for (project of projects(); track project.id) {
@@ -155,16 +156,16 @@
                       </div>
                     </div>
                   }
-                  <div class="rounded-lg border border-slate-200">
-                    <div class="grid grid-cols-[1fr_140px] border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <div class="grid min-w-[520px] grid-cols-[1fr_140px] border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
                       <span>Email</span><span>Papel</span>
                     </div>
-                    <div class="grid grid-cols-[1fr_140px] px-4 py-3 text-sm">
-                      <span class="text-slate-900">{{ workspace.ownerEmail }}</span><span class="text-slate-600">OWNER</span>
+                    <div class="grid min-w-[520px] grid-cols-[1fr_140px] px-4 py-3 text-sm">
+                      <span class="break-all text-slate-900">{{ workspace.ownerEmail }}</span><span class="text-slate-600">OWNER</span>
                     </div>
                     @for (member of workspace.members; track member.id) {
-                      <div class="grid grid-cols-[1fr_140px] border-t border-slate-100 px-4 py-3 text-sm">
-                        <span class="text-slate-900">{{ member.userEmail }}</span><span class="text-slate-600">{{ member.role }}</span>
+                      <div class="grid min-w-[520px] grid-cols-[1fr_140px] border-t border-slate-100 px-4 py-3 text-sm">
+                        <span class="break-all text-slate-900">{{ member.userEmail }}</span><span class="text-slate-600">{{ member.role }}</span>
                       </div>
                     }
                   </div>
@@ -175,55 +176,90 @@
                 <div class="space-y-4">
                   <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                     <div>
-                      <h3 class="text-sm font-semibold text-slate-900">Perguntas recorrentes</h3>
-                      <p class="text-sm text-slate-500">Ranking por similaridade, sem gráficos exagerados.</p>
+                      <h3 class="text-sm font-semibold text-slate-900">Perguntas por projeto</h3>
+                      <p class="text-sm text-slate-500">Usuarios vinculados ao projeto e ranking separado por chatbot.</p>
                     </div>
-                    <button (click)="loadRanking()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Atualizar</button>
+                    <button (click)="loadQuestions()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Atualizar</button>
                   </div>
                   @if (analyticsError()) {
                     <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{{ analyticsError() }}</div>
                   }
-                  @if (analyticsLoading() && ranking().length === 0) {
-                    <p class="text-sm text-slate-500">Carregando ranking...</p>
-                  } @else if (ranking().length === 0) {
-                    <p class="text-sm text-slate-500">Nenhuma pergunta recorrente encontrada.</p>
+                  @if (analyticsLoading() && questionsByProject().length === 0) {
+                    <p class="text-sm text-slate-500">Carregando perguntas...</p>
+                  } @else if (questionsByProject().length === 0) {
+                    <p class="text-sm text-slate-500">Nenhum projeto encontrado para organizar perguntas.</p>
                   } @else {
-                    <div class="space-y-3">
-                      @for (cluster of ranking(); track cluster.rank) {
-                        <div class="rounded-lg border border-slate-200 p-4">
-                          <div class="flex items-center justify-between gap-4">
+                    <div class="space-y-4">
+                      @for (item of questionsByProject(); track item.project.id) {
+                        <section class="rounded-lg border border-slate-200 bg-white p-4">
+                          <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div>
-                              <p class="text-xs text-slate-500">#{{ cluster.rank }}</p>
-                              <p class="font-medium text-slate-900">{{ cluster.representativeQuestion }}</p>
+                              <p class="text-base font-semibold text-slate-900">{{ item.project.name }}</p>
+                              <p class="mt-1 text-sm text-slate-500">{{ item.project.description || 'Sem descricao' }}</p>
                             </div>
-                            <span class="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">{{ cluster.totalOccurrences }}</span>
+                            <div class="flex flex-wrap gap-2 text-xs font-medium">
+                              <span class="rounded-full bg-slate-100 px-2 py-1 text-slate-700">{{ item.users.length }} usuarios</span>
+                              <span class="rounded-full bg-blue-50 px-2 py-1 text-blue-700">{{ item.chatbots.length }} chatbots</span>
+                            </div>
                           </div>
-                          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-                            <div class="h-full rounded-full bg-blue-600" [style.width.%]="cluster.totalOccurrences > 20 ? 100 : cluster.totalOccurrences * 5"></div>
+
+                          <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <p class="text-xs font-semibold uppercase text-slate-500">Usuarios do projeto</p>
+                            @if (item.users.length === 0) {
+                              <p class="mt-2 text-sm text-slate-500">Nenhum usuario entrou por codigo de chatbot deste projeto.</p>
+                            } @else {
+                              <div class="mt-2 flex flex-wrap gap-2">
+                                @for (user of item.users; track user.email) {
+                                  <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700" [title]="formatJoinedAt(user.joinedAt) | date:'dd/MM/yyyy HH:mm'">
+                                    {{ user.name || user.email }}
+                                  </span>
+                                }
+                              </div>
+                            }
                           </div>
-                        </div>
+
+                          <div class="mt-4 space-y-3">
+                            @if (item.chatbots.length === 0) {
+                              <div class="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">Nenhum chatbot criado para este projeto.</div>
+                            }
+                            @for (entry of item.chatbots; track entry.chatbot.id) {
+                              <div class="rounded-lg border border-slate-200 p-4">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                  <div>
+                                    <p class="font-medium text-slate-900">{{ entry.chatbot.name }}</p>
+                                    <p class="text-xs text-slate-500">Perguntas frequentes deste chatbot</p>
+                                  </div>
+                                  <span class="w-fit rounded-full px-2 py-1 text-xs font-medium" [class.bg-green-100]="isChatbotActive(entry.chatbot)" [class.text-green-700]="isChatbotActive(entry.chatbot)" [class.bg-slate-100]="!isChatbotActive(entry.chatbot)" [class.text-slate-600]="!isChatbotActive(entry.chatbot)">
+                                    {{ isChatbotActive(entry.chatbot) ? 'Ativo' : 'Inativo' }}
+                                  </span>
+                                </div>
+                                @if (entry.ranking.length === 0) {
+                                  <p class="mt-3 text-sm text-slate-500">Nenhuma pergunta recorrente encontrada para este chatbot.</p>
+                                } @else {
+                                  <div class="mt-3 space-y-2">
+                                    @for (cluster of entry.ranking; track cluster.rank) {
+                                      <div class="rounded-lg bg-slate-50 p-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                          <div>
+                                            <p class="text-xs text-slate-500">#{{ cluster.rank }}</p>
+                                            <p class="text-sm font-medium text-slate-900">{{ cluster.representativeQuestion }}</p>
+                                          </div>
+                                          <span class="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">{{ cluster.totalOccurrences }}</span>
+                                        </div>
+                                      </div>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </section>
                       }
                     </div>
                   }
                 </div>
               }
 
-              @if (activeTab() === 'history') {
-                <div class="space-y-3">
-                  <button (click)="loadHistory()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Atualizar histórico</button>
-                  @if (history().length === 0) {
-                    <p class="text-sm text-slate-500">Nenhuma mensagem encontrada.</p>
-                  } @else {
-                    @for (message of history(); track message.id) {
-                      <div class="rounded-lg border border-slate-200 p-4">
-                        <p class="font-medium text-slate-900">{{ message.question }}</p>
-                        <p class="mt-1 text-sm text-slate-500">{{ message.userEmail || 'Usuário' }} · {{ messageTimestamp(message) | date:'dd/MM/yyyy HH:mm' }}</p>
-                        <p class="mt-3 whitespace-pre-wrap text-sm text-slate-700">{{ message.answer || 'Sem resposta registrada' }}</p>
-                      </div>
-                    }
-                  }
-                </div>
-              }
             </div>
           </div>
         </section>
@@ -232,7 +268,7 @@
   }
 
   @if (showDeleteModal() && deleteTarget()) {
-    <app-confirm-modal title="Excluir espaço" [message]="getDeleteConfirmMessage()" confirmLabel="Excluir" cancelLabel="Cancelar" variant="danger" backdropClass="bg-black/30 backdrop-blur-sm" (confirm)="confirmDeleteWorkspace()" (cancel)="closeDeleteWorkspaceModal()" />
+    <app-confirm-modal title="Excluir ambiente" [message]="getDeleteConfirmMessage()" confirmLabel="Excluir" cancelLabel="Cancelar" variant="danger" backdropClass="bg-black/30 backdrop-blur-sm" (confirm)="confirmDeleteWorkspace()" (cancel)="closeDeleteWorkspaceModal()" />
   }
 
   @if (showProjectModal()) {
@@ -254,7 +290,7 @@
   @if (showWorkspaceModal()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
       <div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-        <h2 class="text-lg font-semibold text-slate-900">{{ editingWorkspace() ? 'Editar espaço' : 'Criar espaço' }}</h2>
+        <h2 class="text-lg font-semibold text-slate-900">{{ editingWorkspace() ? 'Editar ambiente' : 'Criar ambiente' }}</h2>
         <div class="mt-4 space-y-4">
           <label class="block">
             <span class="text-sm font-medium text-slate-700">Nome</span>

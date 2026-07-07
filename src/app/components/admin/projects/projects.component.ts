@@ -53,7 +53,7 @@ export class ProjectsComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar workspaces'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar ambiente'));
         this.loading.set(false);
       }
     });
@@ -82,7 +82,7 @@ export class ProjectsComponent implements OnInit {
 
   openCreateModal(): void {
     if (!this.selectedWorkspaceId()) {
-      this.error.set('Selecione um workspace');
+      this.error.set('Crie um ambiente antes de criar projetos');
       return;
     }
     this.showCreateModal.set(true);

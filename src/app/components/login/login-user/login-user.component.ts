@@ -25,7 +25,7 @@ export class LoginUserComponent implements OnInit {
     private router: Router
   ) {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.authService.getSessionMode() === 'manager' ? '/app/spaces' : '/chatbots/join']);
+      this.router.navigate([this.authService.getSessionMode() === 'manager' ? '/app/home' : '/chatbots/join']);
     }
   }
 

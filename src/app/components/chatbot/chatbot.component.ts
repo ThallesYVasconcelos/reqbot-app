@@ -37,6 +37,13 @@ export class ChatbotComponent implements OnInit {
   error = signal<string | null>(null);
 
   activeChatbot = computed(() => this.chatbots().find(bot => bot.id === this.activeChatbotId()) ?? null);
+  chatbotUnavailableMessage = computed(() => {
+    const chatbot = this.activeChatbot();
+    if (!chatbot) return 'Selecione um chatbot para enviar perguntas.';
+    if (!this.isChatbotActive(chatbot)) return 'Este chatbot esta inativo no momento. Peca para um admin ativa-lo.';
+    if (chatbot.availableNow === false) return 'Este chatbot esta fora do horario configurado.';
+    return null;
+  });
 
   ngOnInit(): void {
     const routeChatbotId = this.route.snapshot.paramMap.get('chatbotId');
@@ -67,7 +74,7 @@ export class ChatbotComponent implements OnInit {
   joinChatbot(): void {
     const code = this.joinCode().trim().toUpperCase();
     if (!code) {
-      this.error.set('Digite o código do chatbot');
+      this.error.set('Digite o codigo do chatbot');
       return;
     }
 
@@ -82,7 +89,7 @@ export class ChatbotComponent implements OnInit {
       },
       error: (err) => {
         this.joining.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Código inválido ou expirado'));
+        this.error.set(this.getUserFriendlyError(err, 'Codigo invalido ou expirado'));
       }
     });
   }
@@ -118,13 +125,17 @@ export class ChatbotComponent implements OnInit {
 
   canSendMessage(): boolean {
     const chatbot = this.activeChatbot();
-    return Boolean(chatbot && (chatbot.isActive ?? chatbot.active) && chatbot.availableNow !== false);
+    return Boolean(chatbot && this.isChatbotActive(chatbot) && chatbot.availableNow !== false);
   }
 
   sendMessage(): void {
     const chatbotId = this.activeChatbotId();
     const question = this.currentQuestion().trim();
     if (!chatbotId || !question || this.loading()) return;
+    if (!this.canSendMessage()) {
+      this.error.set(this.chatbotUnavailableMessage());
+      return;
+    }
 
     this.loading.set(true);
     this.error.set(null);
@@ -141,7 +152,7 @@ export class ChatbotComponent implements OnInit {
           ...messages,
           {
             question: response.question || question,
-            answer: response.answer || 'Não consegui responder agora. Tente novamente em instantes.',
+            answer: response.answer || 'Nao consegui responder agora. Tente novamente em instantes.',
             timestamp: response.answeredAt || new Date().toISOString(),
             isUser: false
           }
@@ -159,7 +170,7 @@ export class ChatbotComponent implements OnInit {
   }
 
   goToSpaces(): void {
-    this.router.navigate(['/app/spaces']);
+    this.router.navigate(['/app/home']);
   }
 
   private getUserFriendlyError(err: any, fallback: string): string {
@@ -167,5 +178,9 @@ export class ChatbotComponent implements OnInit {
     if (msg && typeof msg === 'string') return msg;
     if (err.message && typeof err.message === 'string') return err.message;
     return fallback;
+  }
+
+  private isChatbotActive(chatbot: ChatbotConfig): boolean {
+    return chatbot.isActive === true || chatbot.active === true;
   }
 }

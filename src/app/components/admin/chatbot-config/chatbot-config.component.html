@@ -3,10 +3,10 @@
     <div>
       <p class="text-sm text-slate-500">{{ breadcrumb() }}</p>
       <h1 class="mt-1 text-2xl font-semibold text-slate-900">Chatbots</h1>
-      <p class="mt-1 text-sm text-slate-600">Crie assistentes por projeto e compartilhe o código com os usuários.</p>
+      <p class="mt-1 text-sm text-slate-600">Crie assistentes por projeto e compartilhe o codigo com os usuarios.</p>
     </div>
     <a routerLink="/chatbots/join" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
-      Abrir como usuário
+      Abrir como usuario
     </a>
   </div>
 
@@ -16,21 +16,13 @@
 
   @if (workspaces().length === 0 && !loading()) {
     <div class="rounded-lg border border-slate-200 bg-white p-10 text-center">
-      <p class="text-sm font-medium text-slate-900">Nenhum espaço encontrado.</p>
-      <p class="mt-1 text-sm text-slate-500">Crie um espaço antes de configurar chatbots.</p>
-      <a routerLink="/app/spaces" class="mt-4 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar espaço</a>
+      <p class="text-sm font-medium text-slate-900">Nenhum ambiente encontrado.</p>
+      <p class="mt-1 text-sm text-slate-500">Crie seu ambiente antes de configurar chatbots.</p>
+      <a routerLink="/app/home" class="mt-4 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar ambiente</a>
     </div>
   } @else {
     <section class="rounded-lg border border-slate-200 bg-white p-5">
-      <div class="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <label class="block">
-          <span class="text-sm font-medium text-slate-700">Espaço</span>
-          <select [ngModel]="selectedWorkspaceId()" (ngModelChange)="onWorkspaceChange($event)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            @for (workspace of workspaces(); track workspace.id) {
-              <option [ngValue]="workspace.id">{{ workspace.name }}</option>
-            }
-          </select>
-        </label>
+      <div class="grid gap-4 lg:grid-cols-[1fr]">
         <label class="block">
           <span class="text-sm font-medium text-slate-700">Projeto</span>
           <select [ngModel]="selectedProjectId()" (ngModelChange)="selectedProjectId.set($event)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
@@ -48,7 +40,7 @@
           <input [ngModel]="name()" (ngModelChange)="name.set($event)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Assistente da Biblioteca" />
         </label>
         <label class="block">
-          <span class="text-sm font-medium text-slate-700">Início</span>
+          <span class="text-sm font-medium text-slate-700">Inicio</span>
           <input type="time" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
         </label>
         <label class="block">
@@ -60,7 +52,7 @@
       <div class="mt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <label class="flex items-center gap-3 text-sm text-slate-700">
           <input type="checkbox" [ngModel]="showRequirementsToUsers()" (ngModelChange)="showRequirementsToUsers.set($event)" class="h-4 w-4 rounded border-slate-300" />
-          Mostrar requisitos para usuários
+          Mostrar requisitos para usuarios
         </label>
         <button (click)="createChatbot()" [disabled]="saving()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
           {{ saving() ? 'Criando...' : 'Novo chatbot' }}
@@ -70,23 +62,23 @@
 
     @if (createdAccessCode()) {
       <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <p class="text-sm font-medium text-blue-900">Código de acesso</p>
+        <p class="text-sm font-medium text-blue-900">Codigo de acesso</p>
         <div class="mt-2 flex flex-wrap items-center gap-3">
           <code class="rounded-lg bg-white px-3 py-2 font-mono text-lg font-semibold text-blue-900">{{ createdAccessCode() }}</code>
           <button type="button" (click)="copyAccessCode(createdAccessCode()!)" class="text-sm font-medium text-blue-700 hover:text-blue-900">Copiar</button>
         </div>
-        <p class="mt-2 text-sm text-blue-800">Guarde este código. Ele não será exibido novamente.</p>
+        <p class="mt-2 text-sm text-blue-800">Guarde este codigo. Ele nao sera exibido novamente.</p>
       </div>
     }
 
     <section class="rounded-lg border border-slate-200 bg-white">
       <div class="border-b border-slate-200 px-5 py-4">
-        <h2 class="text-sm font-semibold text-slate-900">Chatbots do espaço</h2>
+        <h2 class="text-sm font-semibold text-slate-900">Chatbots do ambiente</h2>
       </div>
       @if (loading() && chatbots().length === 0) {
         <p class="p-5 text-sm text-slate-500">Carregando chatbots...</p>
       } @else if (chatbots().length === 0) {
-        <p class="p-5 text-sm text-slate-500">Nenhum chatbot criado neste espaço.</p>
+        <p class="p-5 text-sm text-slate-500">Nenhum chatbot criado neste ambiente.</p>
       } @else {
         <div class="divide-y divide-slate-100">
           @for (chatbot of chatbots(); track chatbot.id) {
@@ -101,7 +93,7 @@
                 <p class="mt-1 text-sm text-slate-500">
                   Projeto: {{ chatbot.requirementSetName || chatbot.requirementSetId }}
                   @if (chatbot.availableNow !== undefined) {
-                    · {{ chatbot.availableNow ? 'Disponível agora' : 'Fora do horário' }}
+                    · {{ chatbot.availableNow ? 'Disponivel agora' : 'Fora do horario' }}
                   }
                 </p>
               </div>

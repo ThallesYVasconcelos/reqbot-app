@@ -11,6 +11,7 @@ import {
   ChatQuestionClusterDTO,
   CreateAdminInvitationRequest,
   CreateWorkspaceRequest,
+  ProjectUserDTO,
   UpdateWorkspaceRequest,
   WorkspaceDTO
 } from '../models/workspace.model';
@@ -51,7 +52,7 @@ export class WorkspaceService {
   create(request: CreateWorkspaceRequest): Observable<WorkspaceDTO> {
     return this.api.post<WorkspaceDTO>('/api/workspaces', request).pipe(
       tap(workspace => {
-        this.workspacesState.update(workspaces => [workspace, ...workspaces]);
+        this.workspacesState.set([workspace]);
         this.selectWorkspace(workspace.id);
       })
     );
@@ -116,6 +117,12 @@ export class WorkspaceService {
 
   createRequirementSet(workspaceId: string, body: CreateRequirementSetRequest): Observable<RequirementSet> {
     return this.api.post<RequirementSet>(`/api/workspaces/${workspaceId}/requirement-sets`, body);
+  }
+
+  getRequirementSetUsers(workspaceId: string, requirementSetId: string): Observable<ProjectUserDTO[]> {
+    return this.api.get<ProjectUserDTO[]>(
+      `/api/workspaces/${workspaceId}/requirement-sets/${requirementSetId}/users`
+    );
   }
 
   /** Histórico completo (Owner/Admin) */

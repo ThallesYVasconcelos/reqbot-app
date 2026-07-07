@@ -8,6 +8,12 @@ export interface WorkspaceMemberDTO {
   createdAt: string;
 }
 
+export interface ProjectUserDTO {
+  email: string;
+  name: string | null;
+  joinedAt: string;
+}
+
 export interface WorkspaceDTO {
   id: string;
   name: string;
