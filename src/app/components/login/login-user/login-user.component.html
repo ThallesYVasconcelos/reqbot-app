@@ -1,20 +1,13 @@
-<main class="auth-page auth-page-user">
+<main class="auth-page">
   <section class="auth-card" aria-label="Login usuario">
-    <a routerLink="/login/user" class="brand compact">
-      <span class="brand-mark">RB</span>
-      <span>
-        <strong>ReqBot Chat</strong>
-        <small>acesso para usuarios</small>
-      </span>
+    <a routerLink="/login/user" class="brand" aria-label="ReqBot Chat">
+      <span>ReqBot</span>
     </a>
 
-    <div>
-      <p class="eyebrow">Usuario de chatbot</p>
-      <h1>Entre para acessar seus chatbots.</h1>
-      <p class="card-copy">
-        Este acesso mostra somente chatbots vinculados por codigo. Voce nao vera projetos,
-        equipe ou configuracoes administrativas.
-      </p>
+    <div class="auth-heading">
+      <p class="eyebrow">Login usuario</p>
+      <h1>Entrar no chat</h1>
+      <p>Entre com Google para acessar o chatbot.</p>
     </div>
 
     @if (loading()) {
@@ -34,22 +27,14 @@
         @if (!googleAvailable()) {
           <p class="auth-hint">Carregando Google OAuth...</p>
         } @else {
-          <p class="auth-security">Depois do login, cole o codigo recebido para entrar no chatbot.</p>
+          <p class="auth-security">Depois, digite o codigo recebido.</p>
         }
       </div>
     }
 
     <div class="switch-profile">
-      <span>Voce gerencia projetos e chatbots?</span>
-      <a routerLink="/login/admin">Entrar como admin</a>
-    </div>
-  </section>
-
-  <section class="auth-panel">
-    <div class="chat-preview" aria-hidden="true">
-      <div class="bubble user">Qual requisito cobre o fluxo de pagamento?</div>
-      <div class="bubble bot">O requisito RF-08 descreve validacao, confirmacao e retorno do pagamento.</div>
-      <div class="bubble status">Somente chatbots ativos aceitam perguntas.</div>
+      <span>Vai administrar?</span>
+      <a routerLink="/login/admin">Entrar no admin</a>
     </div>
   </section>
 </main>

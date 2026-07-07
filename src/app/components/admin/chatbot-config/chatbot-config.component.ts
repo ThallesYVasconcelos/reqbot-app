@@ -25,6 +25,8 @@ export class ChatbotConfigComponent implements OnInit {
   chatbots = signal<ChatbotConfig[]>([]);
   loading = signal(false);
   saving = signal(false);
+  deletingChatbotId = signal<string | null>(null);
+  loadingCodeChatbotId = signal<string | null>(null);
   error = signal<string | null>(null);
   createdAccessCode = signal<string | null>(null);
 
@@ -117,8 +119,58 @@ export class ChatbotConfigComponent implements OnInit {
     });
   }
 
+  deleteChatbot(chatbot: ChatbotConfig): void {
+    const workspaceId = this.selectedWorkspaceId();
+    if (!workspaceId || !chatbot.id) return;
+
+    const confirmed = window.confirm(`Excluir o chatbot "${this.displayChatbotName(chatbot)}"?`);
+    if (!confirmed) return;
+
+    this.deletingChatbotId.set(chatbot.id);
+    this.error.set(null);
+    this.chatbotService.deleteWorkspaceChatbot(workspaceId, chatbot.id).subscribe({
+      next: () => {
+        this.deletingChatbotId.set(null);
+        this.chatbots.update(list => list.filter(item => item.id !== chatbot.id));
+      },
+      error: (err) => {
+        this.deletingChatbotId.set(null);
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao excluir chatbot'));
+      }
+    });
+  }
+
+  revealAccessCode(chatbot: ChatbotConfig): void {
+    const workspaceId = this.selectedWorkspaceId();
+    if (!workspaceId || !chatbot.id) return;
+
+    this.loadingCodeChatbotId.set(chatbot.id);
+    this.error.set(null);
+    this.chatbotService.getWorkspaceChatbot(workspaceId, chatbot.id).subscribe({
+      next: (updated) => {
+        this.loadingCodeChatbotId.set(null);
+        this.chatbots.update(list => list.map(item => item.id === updated.id ? { ...item, ...updated } : item));
+        if (!updated.accessCode) {
+          this.error.set('Codigo de acesso nao foi retornado pela API.');
+        }
+      },
+      error: (err) => {
+        this.loadingCodeChatbotId.set(null);
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar codigo de acesso'));
+      }
+    });
+  }
+
   isActive(chatbot: ChatbotConfig): boolean {
     return chatbot.isActive === true || chatbot.active === true;
+  }
+
+  displayChatbotName(chatbot: ChatbotConfig): string {
+    return chatbot.name?.trim() || 'Chatbot sem nome';
+  }
+
+  chatbotProjectLabel(chatbot: ChatbotConfig): string {
+    return chatbot.requirementSetName || chatbot.requirementSetId || 'Projeto nao informado';
   }
 
   copyAccessCode(code: string): void {

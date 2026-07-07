@@ -23,8 +23,10 @@
         }
         @for (chatbot of chatbots(); track chatbot.id) {
           <button (click)="selectChatbot(chatbot.id)" class="w-full rounded-lg px-3 py-2 text-left text-sm transition" [class.bg-blue-50]="activeChatbotId() === chatbot.id" [class.text-blue-700]="activeChatbotId() === chatbot.id" [class.hover:bg-slate-50]="activeChatbotId() !== chatbot.id">
-            <span class="block truncate font-medium">{{ chatbot.name }}</span>
-            <span class="block truncate text-xs text-slate-500">{{ chatbot.requirementSetName || 'Projeto vinculado' }}</span>
+            <span class="block truncate font-medium">{{ displayChatbotName(chatbot) }}</span>
+            @if (chatbotSubtitle(chatbot); as subtitle) {
+              <span class="block truncate text-xs text-slate-500">{{ subtitle }}</span>
+            }
           </button>
         }
       </div>
@@ -36,7 +38,7 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p class="text-sm text-slate-500">Chatbots</p>
-          <h1 class="text-lg font-semibold text-slate-900">{{ activeChatbot()?.name || 'Entrar em chatbot' }}</h1>
+          <h1 class="text-lg font-semibold text-slate-900">{{ activeChatbot() ? displayChatbotName(activeChatbot()) : 'Entrar em chatbot' }}</h1>
         </div>
         <div class="flex items-center gap-2">
           <button (click)="goToSpaces()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ambiente</button>
@@ -59,8 +61,10 @@
           <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
             @for (chatbot of chatbots(); track chatbot.id) {
               <button (click)="selectChatbot(chatbot.id)" class="min-w-44 rounded-lg border px-3 py-2 text-left text-sm transition" [class.border-blue-200]="activeChatbotId() === chatbot.id" [class.bg-blue-50]="activeChatbotId() === chatbot.id" [class.text-blue-700]="activeChatbotId() === chatbot.id" [class.border-slate-200]="activeChatbotId() !== chatbot.id" [class.bg-white]="activeChatbotId() !== chatbot.id">
-                <span class="block truncate font-medium">{{ chatbot.name }}</span>
-                <span class="block truncate text-xs text-slate-500">{{ chatbot.requirementSetName || 'Projeto vinculado' }}</span>
+                <span class="block truncate font-medium">{{ displayChatbotName(chatbot) }}</span>
+                @if (chatbotSubtitle(chatbot); as subtitle) {
+                  <span class="block truncate text-xs text-slate-500">{{ subtitle }}</span>
+                }
               </button>
             }
           </div>

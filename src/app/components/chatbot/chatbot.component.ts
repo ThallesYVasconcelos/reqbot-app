@@ -84,7 +84,11 @@ export class ChatbotComponent implements OnInit {
       next: (chatbot) => {
         this.joining.set(false);
         this.joinCode.set('');
-        this.chatbots.update(list => list.some(item => item.id === chatbot.id) ? list : [chatbot, ...list]);
+        this.chatbots.update(list =>
+          list.some(item => item.id === chatbot.id)
+            ? list.map(item => item.id === chatbot.id ? chatbot : item)
+            : [chatbot, ...list]
+        );
         this.selectChatbot(chatbot.id);
       },
       error: (err) => {
@@ -95,10 +99,18 @@ export class ChatbotComponent implements OnInit {
   }
 
   selectChatbot(chatbotId: string): void {
-    this.activeChatbotId.set(chatbotId);
+    const id = chatbotId?.trim();
+    if (!id) {
+      this.error.set('Nao foi possivel abrir este chatbot. Tente entrar novamente pelo codigo.');
+      return;
+    }
+
+    this.activeChatbotId.set(id);
     this.messages.set([]);
-    this.router.navigate(['/chatbots', chatbotId], { replaceUrl: true });
-    this.chatbotService.getMyChatHistory(chatbotId).subscribe({
+    this.router.navigate(['/chatbots', id], { replaceUrl: true }).catch(() => {
+      this.error.set('Nao foi possivel atualizar a rota do chatbot.');
+    });
+    this.chatbotService.getMyChatHistory(id).subscribe({
       next: (history) => {
         const messages: Message[] = [];
         history.forEach(item => {
@@ -171,6 +183,14 @@ export class ChatbotComponent implements OnInit {
 
   goToSpaces(): void {
     this.router.navigate(['/app/home']);
+  }
+
+  displayChatbotName(chatbot: ChatbotConfig | null): string {
+    return chatbot?.name?.trim() || 'Chatbot sem nome';
+  }
+
+  chatbotSubtitle(chatbot: ChatbotConfig): string | null {
+    return chatbot.requirementSetName || chatbot.workspaceName || null;
   }
 
   private getUserFriendlyError(err: any, fallback: string): string {
