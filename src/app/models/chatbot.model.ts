@@ -1,10 +1,22 @@
 export interface ChatbotConfig {
   id: string;
+  chatbotId?: string;
+  chatbot_id?: string;
   name: string;
+  chatbotName?: string;
+  displayName?: string;
+  botName?: string;
+  assistantName?: string;
+  configName?: string;
+  configurationName?: string;
   isActive: boolean;
   active?: boolean;
   accessCode?: string;
+  code?: string;
+  access_code?: string;
+  inviteCode?: string;
   requirementSetId: string;
+  projectId?: string;
   requirementSetName?: string;
   workspaceId?: string;
   workspaceName?: string;
