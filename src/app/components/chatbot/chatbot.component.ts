@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ChatbotService } from '../../services/chatbot.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotConfig } from '../../models/chatbot.model';
+import { ThemeService } from '../../services/theme.service';
 
 interface Message {
   question: string;
@@ -26,6 +27,7 @@ export class ChatbotComponent implements OnInit {
   private router = inject(Router);
   private chatbotService = inject(ChatbotService);
   public authService = inject(AuthService);
+  public themeService = inject(ThemeService);
 
   chatbots = signal<ChatbotConfig[]>([]);
   activeChatbotId = signal('');

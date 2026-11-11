@@ -1,4 +1,4 @@
-<div class="flex min-h-screen bg-slate-50 text-slate-900">
+<div class="chatbot-shell flex min-h-screen bg-slate-50 text-slate-900">
   <aside class="hidden w-72 flex-col border-r border-slate-200 bg-white p-4 md:flex">
     <div class="mb-5 flex items-center justify-between">
       <a routerLink="/app/home" class="text-sm font-semibold text-slate-900">ReqBot</a>
@@ -41,7 +41,12 @@
           <h1 class="text-lg font-semibold text-slate-900">{{ activeChatbot() ? displayChatbotName(activeChatbot()) : 'Entrar em chatbot' }}</h1>
         </div>
         <div class="flex items-center gap-2">
-          <button (click)="goToSpaces()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ambiente</button>
+          <div class="flex items-center gap-2">
+            <button type="button" (click)="themeService.toggle()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" [attr.aria-label]="themeService.theme() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
+              {{ themeService.theme() === 'dark' ? '☀ Tema claro' : '☾ Tema escuro' }}
+            </button>
+            <button (click)="goToSpaces()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ambiente</button>
+          </div>
         </div>
       </div>
     </header>

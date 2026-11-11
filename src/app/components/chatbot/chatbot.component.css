@@ -1,1 +1,40 @@
 /* Estilos específicos do componente de chatbot */
+:host-context(html.dark) .chatbot-shell .bg-white {
+  background-color: #1e293b;
+}
+
+:host-context(html.dark) .chatbot-shell .bg-slate-50 {
+  background-color: #0f172a;
+}
+
+:host-context(html.dark) .chatbot-shell .text-slate-900,
+:host-context(html.dark) .chatbot-shell .text-slate-800 {
+  color: #f1f5f9;
+}
+
+:host-context(html.dark) .chatbot-shell .text-slate-700 {
+  color: #cbd5e1;
+}
+
+:host-context(html.dark) .chatbot-shell .text-slate-600,
+:host-context(html.dark) .chatbot-shell .text-slate-500 {
+  color: #94a3b8;
+}
+
+:host-context(html.dark) .chatbot-shell .border-slate-200,
+:host-context(html.dark) .chatbot-shell .border-slate-300 {
+  border-color: #334155;
+}
+
+:host-context(html.dark) .chatbot-shell .hover\:bg-slate-50:hover {
+  background-color: #334155;
+}
+
+:host-context(html.dark) .chatbot-shell input {
+  color: #e2e8f0;
+  background-color: #1e293b;
+}
+
+:host-context(html.dark) .chatbot-shell input::placeholder {
+  color: #94a3b8;
+}
