@@ -29,9 +29,8 @@
     </section>
 
     <section class="rounded-lg border border-slate-200 bg-white">
-      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+      <div class="border-b border-slate-200 px-5 py-4">
         <h2 class="text-sm font-semibold text-slate-900">Requisitos</h2>
-        <a [routerLink]="['/app/requirements']" [queryParams]="{ projectId: project()!.id, create: 'true' }" class="text-sm font-medium text-blue-700 hover:text-blue-900">Novo requisito</a>
       </div>
       <div class="p-5">
         @if (requirements().length === 0) {

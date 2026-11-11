@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +18,20 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal.
 })
 export class RequirementsComponent implements OnInit {
   requirements = signal<Requirement[]>([]);
+  searchTerm = signal('');
+  filteredRequirements = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) return this.requirements();
+    return this.requirements().filter(requirement => {
+      const haystack = [
+        requirement.requirementId,
+        requirement.refinedRequirement,
+        requirement.rawRequirement ?? '',
+        requirement.requirementSetName ?? ''
+      ].join(' ').toLowerCase();
+      return haystack.includes(term);
+    });
+  });
   projects = signal<RequirementSet[]>([]);
   loading = signal(false);
   showCreateModal = signal(false);
@@ -51,6 +65,10 @@ export class RequirementsComponent implements OnInit {
     const params = this.route.snapshot.queryParams;
     const projectId = params['projectId'];
     const openCreate = params['create'] === 'true';
+    const search = params['search'];
+    if (typeof search === 'string' && search.trim()) {
+      this.searchTerm.set(search.trim());
+    }
 
     this.workspaceService.loadWorkspaces().subscribe({
       next: (workspaces) => {
@@ -108,7 +126,6 @@ export class RequirementsComponent implements OnInit {
   }
 
   loadRequirements(): void {
-    // Só carrega se um projeto estiver selecionado
     if (!this.selectedProjectId() || this.selectedProjectId() === 'all') {
       this.requirements.set([]);
       return;
@@ -129,6 +146,14 @@ export class RequirementsComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  onSearchInput(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
   }
 
   openCreateModal(): void {
