@@ -78,7 +78,14 @@
           </button>
         </div>
         <div class="flex items-center gap-3">
-          <span class="hidden text-sm text-slate-600 sm:inline">{{ authService.user()?.name }}</span>
+          @if (authService.user(); as user) {
+            @if (user.pictureUrl) {
+              <img [src]="user.pictureUrl" [alt]="user.name" class="hidden h-8 w-8 rounded-full object-cover sm:block" />
+            } @else {
+              <span class="hidden h-8 w-8 place-items-center rounded-full bg-blue-600 text-xs font-semibold text-white sm:grid">{{ user.name.charAt(0).toUpperCase() }}</span>
+            }
+            <span class="hidden max-w-40 truncate text-sm text-slate-600 sm:inline">{{ user.name }}</span>
+          }
           <button (click)="logout()" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             Sair
           </button>

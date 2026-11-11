@@ -102,6 +102,8 @@ html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-gray-50:hover { backgr
 html.dark .divide-slate-100 > :not(:last-child) { border-color: #334155; }
 html.dark .divide-slate-200 > :not(:last-child) { border-color: #475569; }
 html.dark .placeholder\:text-slate-500::placeholder { color: #94a3b8; }
+select option { color: #0f172a; background: #ffffff; }
+html.dark select option { color: #e2e8f0; background: #1e293b; }
 
 .font-mono {
   font-family: var(--font-mono);

@@ -28,7 +28,12 @@ export class AiConfigurationService {
       `/api/workspaces/${workspaceId}/ai-configuration/models`
     ).pipe(map(response => {
       const models = Array.isArray(response) ? response : response.models ?? [];
-      return models.map(model => typeof model === 'string' ? { id: model } : model);
+      return models.map(model => {
+        if (typeof model === 'string') return { id: model, name: model };
+        const raw = model as AiModelOption & { model?: string; modelId?: string; displayName?: string; modelName?: string; label?: string };
+        const id = raw.id || raw.modelId || raw.model || raw.name || raw.displayName || raw.modelName || raw.label || '';
+        return { ...raw, id, name: raw.name || raw.displayName || raw.modelName || raw.label || id };
+      }).filter(model => !!model.id);
     }));
   }
 }

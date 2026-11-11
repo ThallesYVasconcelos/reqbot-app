@@ -103,8 +103,10 @@ export class AuthService {
     }
 
     const payload = this.readJwtPayload(token);
-    const email = response?.email || response?.data?.email || payload?.email || payload?.sub || 'user@test.local';
-    const name = response?.name || response?.data?.name || payload?.name || payload?.given_name || 'User';
+    const profile = response?.user || response?.data?.user || response?.profile || response?.data?.profile || {};
+    const email = response?.email || response?.data?.email || profile.email || payload?.email || payload?.sub || 'user@test.local';
+    const name = response?.name || response?.data?.name || response?.userName || profile.name || profile.fullName || payload?.name || payload?.given_name || 'User';
+    const pictureUrl = response?.pictureUrl || response?.picture || response?.data?.pictureUrl || response?.data?.picture || profile.pictureUrl || profile.picture || payload?.picture || null;
 
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('token', token);
@@ -113,7 +115,7 @@ export class AuthService {
         id: payload?.id || payload?.sub || '',
         email,
         name,
-        pictureUrl: payload?.picture || null,
+        pictureUrl,
         role: 'USER',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
