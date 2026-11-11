@@ -50,12 +50,17 @@ export class ChatbotComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('reqbot-chat-sidebar');
+      this.showMenu.set(stored === null ? window.matchMedia('(min-width: 768px)').matches : stored === 'open');
+    }
     const routeChatbotId = this.route.snapshot.paramMap.get('chatbotId');
     this.loadMyChatbots(routeChatbotId ?? undefined);
   }
 
   toggleMenu(): void {
     this.showMenu.update(open => !open);
+    if (typeof window !== 'undefined') localStorage.setItem('reqbot-chat-sidebar', this.showMenu() ? 'open' : 'closed');
   }
 
   loadMyChatbots(preferredId?: string): void {

@@ -23,8 +23,11 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   constructor(public authService: AuthService, public themeService: ThemeService) {}
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches) {
-      this.showMenu.set(true);
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('reqbot-admin-sidebar');
+      this.showMenu.set(stored === null
+        ? window.matchMedia('(min-width: 1024px)').matches
+        : stored === 'open');
     }
     this.navSub = this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
@@ -45,6 +48,9 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   toggleMenu(): void {
     this.showMenu.update(val => !val);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('reqbot-admin-sidebar', this.showMenu() ? 'open' : 'closed');
+    }
   }
 
 }
