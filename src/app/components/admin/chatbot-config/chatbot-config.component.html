@@ -3,10 +3,10 @@
     <div>
       <p class="text-sm text-slate-500">{{ breadcrumb() }}</p>
       <h1 class="mt-1 text-2xl font-semibold text-slate-900">Chatbots</h1>
-      <p class="mt-1 text-sm text-slate-600">Crie assistentes por projeto e compartilhe o codigo com os usuarios.</p>
+      <p class="mt-1 text-sm text-slate-600">Crie assistentes por projeto e compartilhe o código com os usuários.</p>
     </div>
     <a routerLink="/chatbots/join" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-      Abrir como usuario
+      Abrir como usuário
     </a>
   </div>
 
@@ -52,7 +52,7 @@
       <div class="mt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <label class="flex items-center gap-3 text-sm text-slate-700">
           <input type="checkbox" [ngModel]="showRequirementsToUsers()" (ngModelChange)="showRequirementsToUsers.set($event)" class="h-4 w-4 rounded border-slate-300" />
-          Mostrar requisitos para usuarios
+          Mostrar requisitos para usuários
         </label>
         <button (click)="createChatbot()" [disabled]="saving()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
           {{ saving() ? 'Criando...' : 'Novo chatbot' }}
@@ -62,12 +62,12 @@
 
     @if (createdAccessCode()) {
       <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <p class="text-sm font-medium text-blue-900">Codigo de acesso</p>
+        <p class="text-sm font-medium text-blue-900">Código de acesso</p>
         <div class="mt-2 flex flex-wrap items-center gap-3">
           <code class="rounded-lg bg-white px-3 py-2 font-mono text-lg font-semibold text-blue-900">{{ createdAccessCode() }}</code>
           <button type="button" (click)="copyAccessCode(createdAccessCode()!)" class="text-sm font-medium text-blue-700 hover:text-blue-900">Copiar</button>
         </div>
-        <p class="mt-2 text-sm text-blue-800">Voce tambem pode consulta-lo depois pelo botao Ver codigo.</p>
+        <p class="mt-2 text-sm text-blue-800">Você também pode consultá-lo depois pelo botão Ver código.</p>
       </div>
     }
 
@@ -93,18 +93,18 @@
                 <p class="mt-1 text-sm text-slate-500">
                   Projeto: {{ chatbotProjectLabel(chatbot) }}
                   @if (chatbot.availableNow !== undefined) {
-                    · {{ chatbot.availableNow ? 'Disponivel agora' : 'Fora do horario' }}
+                    · {{ chatbot.availableNow ? 'Disponível agora' : 'Fora do horário' }}
                   }
                 </p>
                 @if (revealedAccessCode(chatbot.id); as accessCode) {
                   <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                    <span class="text-slate-500">Codigo:</span>
+                    <span class="text-slate-500">Código:</span>
                     <code class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono font-semibold text-slate-900">{{ accessCode }}</code>
                     <button type="button" (click)="copyAccessCode(accessCode)" class="font-medium text-blue-700 hover:text-blue-900">Copiar</button>
                   </div>
                 } @else {
                   <button type="button" (click)="revealAccessCode(chatbot)" [disabled]="loadingCodeChatbotId() === chatbot.id" class="mt-3 text-sm font-medium text-blue-700 hover:text-blue-900 disabled:opacity-50">
-                    {{ loadingCodeChatbotId() === chatbot.id ? 'Carregando codigo...' : 'Ver codigo' }}
+                    {{ loadingCodeChatbotId() === chatbot.id ? 'Carregando código...' : 'Ver código' }}
                   </button>
                 }
               </div>

@@ -158,14 +158,14 @@ export class ChatbotConfigComponent implements OnInit {
       next: (accessCode) => {
         this.loadingCodeChatbotId.set(null);
         if (!accessCode) {
-          this.error.set('Codigo antigo nao disponivel. Crie um novo chatbot.');
+          this.error.set('Código antigo não disponível. Crie um novo chatbot.');
           return;
         }
         this.revealedAccessCodes.update(codes => ({ ...codes, [chatbot.id]: accessCode }));
       },
       error: (err) => {
         this.loadingCodeChatbotId.set(null);
-        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar codigo de acesso'));
+        this.error.set(this.getUserFriendlyError(err, 'Erro ao carregar código de acesso'));
       }
     });
   }
@@ -179,7 +179,7 @@ export class ChatbotConfigComponent implements OnInit {
   }
 
   chatbotProjectLabel(chatbot: ChatbotConfig): string {
-    return chatbot.requirementSetName || chatbot.requirementSetId || 'Projeto nao informado';
+    return chatbot.requirementSetName || chatbot.requirementSetId || 'Projeto não informado';
   }
 
   revealedAccessCode(chatbotId: string): string | null {

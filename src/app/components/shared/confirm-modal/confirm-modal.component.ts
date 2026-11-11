@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -7,18 +7,20 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" [ngClass]="backdropClass()">
-      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" [ngClass]="backdropClass()" (click)="cancel.emit()" role="presentation">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6" role="dialog" aria-modal="true" [attr.aria-label]="title()" (click)="$event.stopPropagation()">
         <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ title() }}</h3>
         <p class="text-gray-600 mb-6">{{ message() }}</p>
         <div class="flex gap-3 justify-end">
           <button
+            type="button"
             (click)="cancel.emit()"
             class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
           >
             {{ cancelLabel() }}
           </button>
           <button
+            type="button"
             (click)="confirm.emit()"
             [class]="confirmClass()"
           >
@@ -39,6 +41,11 @@ export class ConfirmModalComponent {
 
   confirm = output<void>();
   cancel = output<void>();
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cancel.emit();
+  }
 
   confirmClass(): string {
     const base = 'px-4 py-2 rounded-lg font-medium transition-colors';

@@ -5,7 +5,7 @@
         Ambiente@if (selectedWorkspace(); as workspace) { / {{ workspace.name }} }
       </p>
       <h1 class="mt-1 text-2xl font-semibold text-slate-900">Ambiente</h1>
-      <p class="mt-1 text-sm text-slate-600">Gerencie o unico ambiente da sua conta: projetos, requisitos, chatbots e perguntas.</p>
+      <p class="mt-1 text-sm text-slate-600">Gerencie o único ambiente da sua conta: projetos, requisitos, chatbots e perguntas.</p>
     </div>
     @if (canCreateWorkspace()) {
       <button (click)="openCreateWorkspaceModal()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
@@ -28,7 +28,7 @@
       <div class="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
         <div class="rounded-lg border border-slate-200 p-5">
           <p class="text-sm font-medium text-slate-900">Criar ambiente</p>
-          <p class="mt-2 text-sm text-slate-500">Use esta opcao quando voce sera o OWNER do ambiente.</p>
+          <p class="mt-2 text-sm text-slate-500">Use esta opção quando você será o OWNER do ambiente.</p>
           <button (click)="openCreateWorkspaceModal()" class="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Criar ambiente</button>
         </div>
         <div class="rounded-lg border border-slate-200 p-5">
@@ -177,7 +177,7 @@
                   <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                     <div>
                       <h3 class="text-sm font-semibold text-slate-900">Perguntas por projeto</h3>
-                      <p class="text-sm text-slate-500">Usuarios vinculados ao projeto e ranking separado por chatbot.</p>
+                      <p class="text-sm text-slate-500">Usuários vinculados ao projeto e ranking separado por chatbot.</p>
                     </div>
                     <button (click)="loadQuestions(true)" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Atualizar</button>
                   </div>
@@ -195,18 +195,18 @@
                           <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div>
                               <p class="text-base font-semibold text-slate-900">{{ item.project.name }}</p>
-                              <p class="mt-1 text-sm text-slate-500">{{ item.project.description || 'Sem descricao' }}</p>
+                              <p class="mt-1 text-sm text-slate-500">{{ item.project.description || 'Sem descrição' }}</p>
                             </div>
                             <div class="flex flex-wrap gap-2 text-xs font-medium">
-                              <span class="rounded-full bg-slate-100 px-2 py-1 text-slate-700">{{ item.users.length }} usuarios</span>
+                              <span class="rounded-full bg-slate-100 px-2 py-1 text-slate-700">{{ item.users.length }} usuários</span>
                               <span class="rounded-full bg-blue-50 px-2 py-1 text-blue-700">{{ item.chatbots.length }} chatbots</span>
                             </div>
                           </div>
 
                           <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                            <p class="text-xs font-semibold uppercase text-slate-500">Usuarios do projeto</p>
+                            <p class="text-xs font-semibold uppercase text-slate-500">Usuários do projeto</p>
                             @if (item.users.length === 0) {
-                              <p class="mt-2 text-sm text-slate-500">Nenhum usuario entrou por codigo de chatbot deste projeto.</p>
+                              <p class="mt-2 text-sm text-slate-500">Nenhum usuário entrou por código de chatbot deste projeto.</p>
                             } @else {
                               <div class="mt-2 flex flex-wrap gap-2">
                                 @for (user of item.users; track user.email) {

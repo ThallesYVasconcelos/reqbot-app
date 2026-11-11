@@ -42,7 +42,7 @@ export class ChatbotComponent implements OnInit {
     const chatbot = this.activeChatbot();
     if (!chatbot) return 'Selecione um chatbot para enviar perguntas.';
     if (!this.isChatbotActive(chatbot)) return 'Este chatbot esta inativo no momento. Peca para um admin ativa-lo.';
-    if (chatbot.availableNow === false) return 'Este chatbot esta fora do horario configurado.';
+    if (chatbot.availableNow === false) return 'Este chatbot está fora do horário configurado.';
     return null;
   });
 
@@ -75,7 +75,7 @@ export class ChatbotComponent implements OnInit {
   joinChatbot(): void {
     const code = this.joinCode().trim().toUpperCase();
     if (!code) {
-      this.error.set('Digite o codigo do chatbot');
+      this.error.set('Digite o código do chatbot');
       return;
     }
 
@@ -94,7 +94,7 @@ export class ChatbotComponent implements OnInit {
       },
       error: (err) => {
         this.joining.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Codigo invalido ou expirado'));
+        this.error.set(this.getUserFriendlyError(err, 'Código inválido ou expirado'));
       }
     });
   }
@@ -102,14 +102,14 @@ export class ChatbotComponent implements OnInit {
   selectChatbot(chatbotId: string): void {
     const id = chatbotId?.trim();
     if (!id) {
-      this.error.set('Nao foi possivel abrir este chatbot. Tente entrar novamente pelo codigo.');
+      this.error.set('Não foi possível abrir este chatbot. Tente entrar novamente pelo código.');
       return;
     }
 
     this.activeChatbotId.set(id);
     this.messages.set([]);
     this.router.navigate(['/chatbots', id], { replaceUrl: true }).catch(() => {
-      this.error.set('Nao foi possivel atualizar a rota do chatbot.');
+      this.error.set('Não foi possível atualizar a rota do chatbot.');
     });
     this.chatbotService.getMyChatHistory(id).subscribe({
       next: (history) => {
@@ -165,7 +165,7 @@ export class ChatbotComponent implements OnInit {
           ...messages,
           {
             question: response.question || question,
-            answer: response.answer || 'Nao consegui responder agora. Tente novamente em instantes.',
+            answer: response.answer || 'Não consegui responder agora. Tente novamente em instantes.',
             timestamp: response.answeredAt || new Date().toISOString(),
             isUser: false
           }

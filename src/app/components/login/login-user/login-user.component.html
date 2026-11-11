@@ -1,11 +1,11 @@
 <main class="auth-page">
-  <section class="auth-card" aria-label="Login usuario">
+  <section class="auth-card" aria-label="Login usuário">
     <a routerLink="/login/user" class="brand" aria-label="ReqBot Chat">
       <span>ReqBot</span>
     </a>
 
     <div class="auth-heading">
-      <p class="eyebrow">Login usuario</p>
+      <p class="eyebrow">Login usuário</p>
       <h1>Entrar no chat</h1>
       <p>Entre com Google para acessar o chatbot.</p>
     </div>
@@ -27,7 +27,7 @@
         @if (!googleAvailable()) {
           <p class="auth-hint">Carregando Google OAuth...</p>
         } @else {
-          <p class="auth-security">Depois, digite o codigo recebido.</p>
+          <p class="auth-security">Depois, digite o código recebido.</p>
         }
       </div>
     }

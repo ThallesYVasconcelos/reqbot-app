@@ -263,7 +263,7 @@ export class WorkspacesComponent implements OnInit {
       },
       error: (err) => {
         this.joinLoading.set(false);
-        this.error.set(this.getUserFriendlyError(err, 'Token invalido ou convite de admin indisponivel'));
+        this.error.set(this.getUserFriendlyError(err, 'Token inválido ou convite de admin indisponível'));
       }
     });
   }
@@ -281,7 +281,7 @@ export class WorkspacesComponent implements OnInit {
 
   openCreateWorkspaceModal(): void {
     if (!this.canCreateWorkspace()) {
-      this.error.set('Esta conta ja possui um ambiente.');
+      this.error.set('Esta conta já possui um ambiente.');
       return;
     }
     this.editingWorkspace.set(null);
@@ -315,11 +315,11 @@ export class WorkspacesComponent implements OnInit {
   saveWorkspace(): void {
     const form = this.workspaceForm();
     if (!this.editingWorkspace() && !this.canCreateWorkspace()) {
-      this.error.set('Esta conta ja possui um ambiente.');
+      this.error.set('Esta conta já possui um ambiente.');
       return;
     }
     if (!form.name.trim()) {
-      this.error.set('Nome do ambiente e obrigatorio');
+      this.error.set('Nome do ambiente é obrigatório');
       return;
     }
 
@@ -555,7 +555,7 @@ export class WorkspacesComponent implements OnInit {
 
   private handleAnalyticsError(err: any, fallback: string): void {
     if (err.status === 403) {
-      this.analyticsError.set('Sem permissao para ver metricas deste ambiente');
+      this.analyticsError.set('Sem permissão para ver métricas deste ambiente');
       return;
     }
     this.analyticsError.set(this.getUserFriendlyError(err, fallback));
