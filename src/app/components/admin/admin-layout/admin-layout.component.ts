@@ -20,6 +20,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   /** Barra lateral aberta. Em ≥lg inicia aberta após init; em mobile continua fechada (sem “flash” do overlay). */
   showMenu = signal(false);
+  userMenuOpen = signal(false);
   constructor(public authService: AuthService, public themeService: ThemeService) {}
 
   ngOnInit(): void {
@@ -51,6 +52,15 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('reqbot-admin-sidebar', this.showMenu() ? 'open' : 'closed');
     }
+  }
+
+  toggleUserMenu(): void {
+    this.userMenuOpen.update(open => !open);
+  }
+
+  goToChat(): void {
+    this.userMenuOpen.set(false);
+    this.router.navigate(['/chatbots/join']);
   }
 
 }

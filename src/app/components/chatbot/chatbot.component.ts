@@ -39,6 +39,7 @@ export class ChatbotComponent implements OnInit {
   bootLoading = signal(false);
   error = signal<string | null>(null);
   showMenu = signal(false);
+  userMenuOpen = signal(false);
 
   activeChatbot = computed(() => this.chatbots().find(bot => bot.id === this.activeChatbotId()) ?? null);
   chatbotUnavailableMessage = computed(() => {
@@ -61,6 +62,15 @@ export class ChatbotComponent implements OnInit {
   toggleMenu(): void {
     this.showMenu.update(open => !open);
     if (typeof window !== 'undefined') localStorage.setItem('reqbot-chat-sidebar', this.showMenu() ? 'open' : 'closed');
+  }
+
+  toggleUserMenu(): void {
+    this.userMenuOpen.update(open => !open);
+  }
+
+  goToAdminEnvironment(): void {
+    this.userMenuOpen.set(false);
+    this.router.navigate(['/app/home']);
   }
 
   loadMyChatbots(preferredId?: string): void {

@@ -50,3 +50,13 @@
 :host-context(html.dark) .chatbot-shell .text-blue-700 {
   color: #bfdbfe;
 }
+
+@media (min-width: 768px) {
+  .chatbot-shell.sidebar-collapsed > aside {
+    width: 0;
+    padding-inline: 0;
+    border-width: 0;
+    overflow: hidden;
+    transform: translateX(0);
+  }
+}
