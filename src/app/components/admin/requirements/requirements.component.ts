@@ -112,7 +112,7 @@ export class RequirementsComponent implements OnInit {
           }
           this.loadRequirements();
           if (openCreate && this.selectedProjectId()) {
-            setTimeout(() => this.openCreateModal(), 200);
+            this.openCreateModal();
           }
         } else {
           this.selectedProjectId.set('');

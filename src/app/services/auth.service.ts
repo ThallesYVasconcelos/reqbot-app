@@ -123,14 +123,10 @@ export class AuthService {
       localStorage.setItem('user', JSON.stringify(user));
     }
 
-    setTimeout(() => {
-      if (!isPlatformBrowser(this.platformId)) return;
-
-      this.workspaceService.loadWorkspaces().subscribe({
-        next: () => this.navigateAfterLogin(mode === 'manager' ? '/app/home' : '/chatbots/join'),
-        error: () => this.navigateAfterLogin(mode === 'manager' ? '/app/home' : '/chatbots/join')
-      });
-    }, 100);
+    this.workspaceService.loadWorkspaces().subscribe({
+      next: () => this.navigateAfterLogin(mode === 'manager' ? '/app/home' : '/chatbots/join'),
+      error: () => this.navigateAfterLogin(mode === 'manager' ? '/app/home' : '/chatbots/join')
+    });
   }
 
   private readJwtPayload(token: string): any | null {

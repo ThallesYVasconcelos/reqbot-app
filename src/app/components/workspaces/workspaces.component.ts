@@ -95,6 +95,7 @@ export class WorkspacesComponent implements OnInit {
   rankingLimit = signal(10);
   similarityThreshold = signal(0.82);
   expandedRank = signal<number | null>(null);
+  private analyticsLoadedFor: string | null = null;
 
   questionsByProject = computed(() =>
     this.projects().map(project => ({
@@ -173,9 +174,10 @@ export class WorkspacesComponent implements OnInit {
     this.chatbots.set([]);
     this.projectUsers.set({});
     this.chatbotRankings.set({});
+    this.analyticsLoadedFor = null;
     this.loadWorkspaceProjects();
 
-    if (this.canViewAnalytics()) {
+    if (this.activeTab() === 'ranking') {
       this.loadQuestions();
     }
   }
@@ -429,15 +431,18 @@ export class WorkspacesComponent implements OnInit {
     });
   }
 
-  loadQuestions(): void {
+  loadQuestions(force = false): void {
     const workspace = this.selectedWorkspace();
     if (!workspace) return;
+    if (!force && this.analyticsLoadedFor === workspace.id) return;
 
     this.analyticsLoading.set(true);
     this.analyticsError.set(null);
 
     forkJoin({
-      projects: this.workspaceService.listRequirementSets(workspace.id),
+      projects: this.projects().length
+        ? of(this.projects())
+        : this.workspaceService.listRequirementSets(workspace.id),
       chatbots: this.chatbotService.getWorkspaceChatbots(workspace.id)
     }).subscribe({
       next: ({ projects, chatbots }) => {
@@ -483,8 +488,14 @@ export class WorkspacesComponent implements OnInit {
               }, {})
             );
           },
-          error: (err) => this.handleAnalyticsError(err, 'Erro ao carregar perguntas dos chatbots'),
-          complete: () => this.analyticsLoading.set(false)
+          error: (err) => {
+            this.analyticsLoading.set(false);
+            this.handleAnalyticsError(err, 'Erro ao carregar perguntas dos chatbots');
+          },
+          complete: () => {
+            this.analyticsLoading.set(false);
+            this.analyticsLoadedFor = workspace.id;
+          }
         });
       },
       error: (err) => {
@@ -503,7 +514,7 @@ export class WorkspacesComponent implements OnInit {
   }
 
   applyRankingFilters(): void {
-    this.loadQuestions();
+    this.loadQuestions(true);
   }
 
   setActiveTab(tab: 'details' | 'projects' | 'ranking'): void {

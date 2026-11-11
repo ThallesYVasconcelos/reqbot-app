@@ -18,6 +18,7 @@ import {
 import { CreateRequirementSetRequest, RequirementSet } from '../models/requirement-set.model';
 
 const SELECTED_WORKSPACE_KEY = 'selectedWorkspaceId';
+const WORKSPACES_CACHE_TTL_MS = 30_000;
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +27,7 @@ export class WorkspaceService {
   private platformId = inject(PLATFORM_ID);
   private workspacesState = signal<WorkspaceDTO[]>([]);
   private selectedWorkspaceIdState = signal<string | null>(this.getStoredSelectedWorkspaceId());
+  private workspacesLoadedAt = 0;
 
   readonly workspaces = this.workspacesState.asReadonly();
   readonly selectedWorkspaceId = this.selectedWorkspaceIdState.asReadonly();
@@ -36,10 +38,15 @@ export class WorkspaceService {
 
   constructor(private api: ApiService) {}
 
-  loadWorkspaces(): Observable<WorkspaceDTO[]> {
+  loadWorkspaces(force = false): Observable<WorkspaceDTO[]> {
+    const isFresh = this.workspacesLoadedAt > 0 && Date.now() - this.workspacesLoadedAt < WORKSPACES_CACHE_TTL_MS;
+    if (!force && isFresh) {
+      return of(this.workspacesState());
+    }
     return this.api.get<WorkspaceDTO[]>('/api/workspaces').pipe(
       tap(workspaces => {
         this.workspacesState.set(workspaces);
+        this.workspacesLoadedAt = Date.now();
         this.ensureSelectedWorkspace(workspaces);
       })
     );
@@ -159,6 +166,7 @@ export class WorkspaceService {
   clearSelection(): void {
     this.selectWorkspace(null);
     this.workspacesState.set([]);
+    this.workspacesLoadedAt = 0;
   }
 
   private replaceWorkspace(updated: WorkspaceDTO): void {
