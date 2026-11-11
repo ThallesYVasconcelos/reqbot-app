@@ -70,6 +70,10 @@ export class RequirementsComponent implements OnInit {
     if (typeof search === 'string' && search.trim()) {
       this.searchTerm.set(search.trim());
     }
+    this.route.queryParams.subscribe(queryParams => {
+      const nextSearch = queryParams['search'];
+      this.searchTerm.set(typeof nextSearch === 'string' ? nextSearch : '');
+    });
 
     this.workspaceService.loadWorkspaces().subscribe({
       next: (workspaces) => {

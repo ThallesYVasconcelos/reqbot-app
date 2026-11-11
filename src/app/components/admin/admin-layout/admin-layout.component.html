@@ -44,7 +44,11 @@
         </a>
         <a routerLink="/app/metrics" routerLinkActive="bg-slate-800 text-white" class="nav-item">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19V5m4 14v-6m4 6V9m4 10v-9m4 9V7"/></svg>
-          Métricas
+           Métricas
+        </a>
+        <a routerLink="/app/settings" routerLinkActive="bg-slate-800 text-white" class="nav-item">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6h9m-9 6h9m-9 6h9M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>
+          Configurações
         </a>
       </nav>
 
@@ -68,17 +72,20 @@
           <button type="button" (click)="toggleMenu()" class="shrink-0 rounded-lg p-2 text-slate-700 hover:bg-slate-100" [attr.aria-expanded]="showMenu()" [attr.aria-label]="showMenu() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <form (ngSubmit)="submitSearch()" class="hidden min-w-[260px] items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 md:flex" role="search">
+          <form (ngSubmit)="submitSearch()" class="flex min-w-0 max-w-[420px] flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 md:min-w-[260px]" role="search">
             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 110-15 7.5 7.5 0 010 15z"/></svg>
             <input
               type="search"
               [value]="searchTerm()"
               (input)="onSearchInput($event)"
               class="w-full min-w-0 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-500"
-              placeholder="Buscar requisitos"
+              placeholder="Buscar ambiente, projetos ou requisitos"
               aria-label="Buscar requisitos"
             />
           </form>
+          <button type="button" (click)="themeService.toggle()" class="rounded-lg border border-slate-300 p-2 text-slate-700 hover:bg-slate-50" [attr.aria-label]="themeService.theme() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
+            {{ themeService.theme() === 'dark' ? '☀️' : '🌙' }}
+          </button>
         </div>
         <div class="flex items-center gap-3">
           <span class="hidden text-sm text-slate-600 sm:inline">{{ authService.user()?.name }}</span>

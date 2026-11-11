@@ -20,6 +20,8 @@ import {
 } from '../../models/workspace.model';
 import { RequirementSet, CreateRequirementSetRequest } from '../../models/requirement-set.model';
 import { ChatbotConfig } from '../../models/chatbot.model';
+import { AiConfigurationService } from '../../services/ai-configuration.service';
+import { AiConfiguration, AiModelOption, AiProvider } from '../../models/ai-configuration.model';
 
 type WorkspaceForm = {
   name: string;
@@ -48,6 +50,7 @@ type ChatbotRankingResult = {
 export class WorkspacesComponent implements OnInit {
   private workspaceService = inject(WorkspaceService);
   private chatbotService = inject(ChatbotService);
+  private aiConfigurationService = inject(AiConfigurationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
@@ -61,7 +64,16 @@ export class WorkspacesComponent implements OnInit {
   saving = signal(false);
   error = signal<string | null>(null);
   analyticsError = signal<string | null>(null);
-  activeTab = signal<'details' | 'projects' | 'ranking'>('projects');
+  activeTab = signal<'details' | 'projects' | 'ranking' | 'settings'>('projects');
+  aiConfiguration = signal<AiConfiguration | null>(null);
+  aiModels = signal<AiModelOption[]>([]);
+  aiProvider = signal<AiProvider>('GEMINI');
+  aiModel = signal('');
+  aiApiKey = signal('');
+  aiLoading = signal(false);
+  aiSaving = signal(false);
+  aiMessage = signal<string | null>(null);
+  aiError = signal<string | null>(null);
 
   joinCodeInput = signal('');
   joinLoading = signal(false);
@@ -97,6 +109,7 @@ export class WorkspacesComponent implements OnInit {
   similarityThreshold = signal(0.82);
   expandedRank = signal<number | null>(null);
   private analyticsLoadedFor: string | null = null;
+  private aiLoadedFor: string | null = null;
 
   questionsByProject = computed(() =>
     this.projects().map(project => ({
@@ -140,7 +153,7 @@ export class WorkspacesComponent implements OnInit {
 
   ngOnInit(): void {
     const tab = this.route.snapshot.data['tab'];
-    if (tab === 'details' || tab === 'projects' || tab === 'ranking') {
+    if (tab === 'details' || tab === 'projects' || tab === 'ranking' || tab === 'settings') {
       this.activeTab.set(tab);
     }
     this.loadWorkspaces();
@@ -176,11 +189,84 @@ export class WorkspacesComponent implements OnInit {
     this.projectUsers.set({});
     this.chatbotRankings.set({});
     this.analyticsLoadedFor = null;
+    this.aiLoadedFor = null;
     this.loadWorkspaceProjects();
 
     if (this.activeTab() === 'ranking') {
       this.loadQuestions();
     }
+    if (this.activeTab() === 'settings') this.loadAiConfiguration();
+  }
+
+  loadAiConfiguration(force = false): void {
+    const workspace = this.selectedWorkspace();
+    if (!workspace || !this.canManageMembers() || (!force && this.aiLoadedFor === workspace.id)) return;
+    this.aiLoading.set(true);
+    this.aiError.set(null);
+    this.aiMessage.set(null);
+    forkJoin({
+      configuration: this.aiConfigurationService.get(workspace.id),
+      models: this.aiConfigurationService.models(workspace.id)
+    }).subscribe({
+      next: ({ configuration, models }) => {
+        this.aiConfiguration.set(configuration);
+        this.aiModels.set(models);
+        if (configuration) {
+          this.aiProvider.set(configuration.provider);
+          this.aiModel.set(configuration.model);
+        }
+        this.aiLoadedFor = workspace.id;
+        this.aiLoading.set(false);
+      },
+      error: (err) => {
+        this.aiLoading.set(false);
+        this.aiError.set(this.getUserFriendlyError(err, 'Erro ao carregar configuração de IA'));
+      }
+    });
+  }
+
+  saveAiConfiguration(): void {
+    const workspace = this.selectedWorkspace();
+    if (!workspace || !this.aiModel().trim() || !this.aiApiKey().trim()) {
+      this.aiError.set('Informe o provedor, modelo e chave de API.');
+      return;
+    }
+    this.aiSaving.set(true);
+    this.aiError.set(null);
+    this.aiMessage.set(null);
+    this.aiConfigurationService.save(workspace.id, {
+      provider: this.aiProvider(), model: this.aiModel().trim(), apiKey: this.aiApiKey().trim()
+    }).subscribe({
+      next: configuration => {
+        this.aiConfiguration.set(configuration);
+        this.aiApiKey.set('');
+        this.aiLoadedFor = workspace.id;
+        this.aiSaving.set(false);
+        this.aiMessage.set('Configuração salva com segurança.');
+      },
+      error: err => {
+        this.aiSaving.set(false);
+        this.aiError.set(this.getUserFriendlyError(err, 'Não foi possível salvar a configuração de IA'));
+      }
+    });
+  }
+
+  removeAiConfiguration(): void {
+    const workspace = this.selectedWorkspace();
+    if (!workspace) return;
+    this.aiSaving.set(true);
+    this.aiConfigurationService.remove(workspace.id).subscribe({
+      next: () => {
+        this.aiConfiguration.set(null);
+        this.aiApiKey.set('');
+        this.aiSaving.set(false);
+        this.aiMessage.set('Configuração removida.');
+      },
+      error: err => {
+        this.aiSaving.set(false);
+        this.aiError.set(this.getUserFriendlyError(err, 'Não foi possível remover a configuração'));
+      }
+    });
   }
 
   loadWorkspaceProjects(): void {
@@ -518,14 +604,14 @@ export class WorkspacesComponent implements OnInit {
     this.loadQuestions(true);
   }
 
-  setActiveTab(tab: 'details' | 'projects' | 'ranking'): void {
+  setActiveTab(tab: 'details' | 'projects' | 'ranking' | 'settings'): void {
     this.activeTab.set(tab);
 
     if (tab === 'projects') {
       this.loadWorkspaceProjects();
     }
-    if (!this.canViewAnalytics()) return;
     if (tab === 'ranking') this.loadQuestions();
+    if (tab === 'settings') this.loadAiConfiguration();
   }
 
   toggleRank(rank: number): void {

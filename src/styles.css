@@ -82,6 +82,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Tema escuro: mantém a hierarquia visual existente sem duplicar os templates. */
+html.dark body {
+  color: #e2e8f0;
+  background: #0f172a;
+}
+
+html.dark .bg-white { background-color: #1e293b; }
+html.dark .bg-slate-50, html.dark .bg-gray-50 { background-color: #0f172a; }
+html.dark .bg-slate-100, html.dark .bg-gray-100 { background-color: #334155; }
+html.dark .text-slate-900, html.dark .text-gray-800 { color: #f1f5f9; }
+html.dark .text-slate-700, html.dark .text-gray-700 { color: #cbd5e1; }
+html.dark .text-slate-600, html.dark .text-gray-600, html.dark .text-slate-500, html.dark .text-gray-500 { color: #94a3b8; }
+html.dark .border-slate-200, html.dark .border-slate-300, html.dark .border-gray-300 { border-color: #475569; }
+html.dark input, html.dark select, html.dark textarea { color: #e2e8f0; background-color: #1e293b; }
+html.dark input::placeholder, html.dark textarea::placeholder { color: #94a3b8; }
+html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-gray-50:hover { background-color: #334155; }
+
 .font-mono {
   font-family: var(--font-mono);
 }

@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -21,7 +22,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   showMenu = signal(false);
   searchTerm = signal('');
 
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService, public themeService: ThemeService) {}
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches) {
@@ -54,9 +55,6 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   submitSearch(): void {
     const term = this.searchTerm().trim();
-    this.router.navigate(['/app/requirements'], {
-      queryParams: term ? { search: term } : {}
-    });
-    this.searchTerm.set('');
+    this.router.navigate(['/app/requirements'], { queryParams: term ? { search: term } : {} });
   }
 }
