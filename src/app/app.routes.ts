@@ -30,7 +30,7 @@ export const routes: Routes = [
       { path: 'requirements', loadComponent: () => import('./components/admin/requirements/requirements.component').then(m => m.RequirementsComponent) },
       { path: 'chatbots', loadComponent: () => import('./components/admin/chatbot-config/chatbot-config.component').then(m => m.ChatbotConfigComponent) },
       { path: 'team', data: { tab: 'details' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
-      { path: 'settings', data: { tab: 'settings' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'settings', loadComponent: () => import('./components/admin/user-settings/user-settings.component').then(m => m.UserSettingsComponent) },
       { path: 'metrics', data: { tab: 'ranking' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]

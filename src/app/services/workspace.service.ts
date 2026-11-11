@@ -19,6 +19,7 @@ import { CreateRequirementSetRequest, RequirementSet } from '../models/requireme
 
 const SELECTED_WORKSPACE_KEY = 'selectedWorkspaceId';
 const WORKSPACES_CACHE_TTL_MS = 30_000;
+const REQUIREMENT_SETS_CACHE_TTL_MS = 60_000;
 
 @Injectable({
   providedIn: 'root'
@@ -28,6 +29,7 @@ export class WorkspaceService {
   private workspacesState = signal<WorkspaceDTO[]>([]);
   private selectedWorkspaceIdState = signal<string | null>(this.getStoredSelectedWorkspaceId());
   private workspacesLoadedAt = 0;
+  private requirementSetsCache = new Map<string, { loadedAt: number; items: RequirementSet[] }>();
 
   readonly workspaces = this.workspacesState.asReadonly();
   readonly selectedWorkspaceId = this.selectedWorkspaceIdState.asReadonly();
@@ -119,11 +121,19 @@ export class WorkspaceService {
   }
 
   listRequirementSets(workspaceId: string): Observable<RequirementSet[]> {
-    return this.api.get<RequirementSet[]>(`/api/workspaces/${workspaceId}/requirement-sets`);
+    const cached = this.requirementSetsCache.get(workspaceId);
+    if (cached && Date.now() - cached.loadedAt < REQUIREMENT_SETS_CACHE_TTL_MS) {
+      return of(cached.items);
+    }
+    return this.api.get<RequirementSet[]>(`/api/workspaces/${workspaceId}/requirement-sets`).pipe(
+      tap(items => this.requirementSetsCache.set(workspaceId, { loadedAt: Date.now(), items }))
+    );
   }
 
   createRequirementSet(workspaceId: string, body: CreateRequirementSetRequest): Observable<RequirementSet> {
-    return this.api.post<RequirementSet>(`/api/workspaces/${workspaceId}/requirement-sets`, body);
+    return this.api.post<RequirementSet>(`/api/workspaces/${workspaceId}/requirement-sets`, body).pipe(
+      tap(() => this.requirementSetsCache.delete(workspaceId))
+    );
   }
 
   getRequirementSetUsers(workspaceId: string, requirementSetId: string): Observable<ProjectUserDTO[]> {
@@ -167,6 +177,7 @@ export class WorkspaceService {
     this.selectWorkspace(null);
     this.workspacesState.set([]);
     this.workspacesLoadedAt = 0;
+    this.requirementSetsCache.clear();
   }
 
   private replaceWorkspace(updated: WorkspaceDTO): void {

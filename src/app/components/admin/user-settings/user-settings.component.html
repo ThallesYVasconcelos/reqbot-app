@@ -1,0 +1,22 @@
+<div class="mx-auto max-w-3xl space-y-6">
+  <div>
+    <p class="text-sm text-slate-500">Conta</p>
+    <h1 class="mt-1 text-2xl font-semibold text-slate-900">Configurações</h1>
+    <p class="mt-1 text-sm text-slate-600">Preferências pessoais da sua conta.</p>
+  </div>
+  <section class="rounded-lg border border-slate-200 bg-white p-5">
+    <h2 class="text-sm font-semibold text-slate-900">Perfil</h2>
+    <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Nome</dt><dd class="mt-1 text-sm text-slate-900">{{ authService.user()?.name || 'Não informado' }}</dd></div>
+      <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">E-mail</dt><dd class="mt-1 break-all text-sm text-slate-900">{{ authService.user()?.email || 'Não informado' }}</dd></div>
+    </dl>
+  </section>
+  <section class="rounded-lg border border-slate-200 bg-white p-5">
+    <h2 class="text-sm font-semibold text-slate-900">Aparência</h2>
+    <p class="mt-1 text-sm text-slate-600">Escolha como o ReqBot aparece para você.</p>
+    <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tema da aplicação">
+      <button type="button" (click)="themeService.set('light')" [attr.aria-pressed]="themeService.theme() === 'light'" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 aria-pressed:border-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">Tema claro</button>
+      <button type="button" (click)="themeService.set('dark')" [attr.aria-pressed]="themeService.theme() === 'dark'" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 aria-pressed:border-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">Tema escuro</button>
+    </div>
+  </section>
+</div>

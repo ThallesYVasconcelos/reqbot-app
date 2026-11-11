@@ -19,3 +19,17 @@
   background: rgb(15 23 42);
   color: white;
 }
+
+:host-context(html.dark) .tab-button {
+  color: rgb(148 163 184);
+}
+
+:host-context(html.dark) .tab-button:hover {
+  background: rgb(51 65 85);
+  color: rgb(226 232 240);
+}
+
+:host-context(html.dark) .tab-button.active {
+  background: rgb(37 99 235);
+  color: white;
+}

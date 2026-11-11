@@ -20,8 +20,6 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   /** Barra lateral aberta. Em ≥lg inicia aberta após init; em mobile continua fechada (sem “flash” do overlay). */
   showMenu = signal(false);
-  searchTerm = signal('');
-
   constructor(public authService: AuthService, public themeService: ThemeService) {}
 
   ngOnInit(): void {
@@ -49,12 +47,4 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     this.showMenu.update(val => !val);
   }
 
-  onSearchInput(event: Event): void {
-    this.searchTerm.set((event.target as HTMLInputElement).value);
-  }
-
-  submitSearch(): void {
-    const term = this.searchTerm().trim();
-    this.router.navigate(['/app/requirements'], { queryParams: term ? { search: term } : {} });
-  }
 }
