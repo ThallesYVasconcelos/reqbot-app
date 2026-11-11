@@ -20,17 +20,17 @@ export const routes: Routes = [
     canActivate: [managerGuard],
     loadComponent: () => import('./components/admin/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
-      { path: 'home', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
-      { path: 'spaces', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'home', data: { tab: 'projects' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'spaces', data: { tab: 'projects' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: 'spaces/:workspaceId/projects', loadComponent: () => import('./components/admin/projects/projects.component').then(m => m.ProjectsComponent) },
-      { path: 'spaces/:workspaceId/team', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
-      { path: 'spaces/:workspaceId/ranking', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'spaces/:workspaceId/team', data: { tab: 'details' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'spaces/:workspaceId/ranking', data: { tab: 'ranking' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: 'projects', loadComponent: () => import('./components/admin/projects/projects.component').then(m => m.ProjectsComponent) },
       { path: 'projects/:id', loadComponent: () => import('./components/admin/project-detail/project-detail.component').then(m => m.ProjectDetailComponent) },
       { path: 'requirements', loadComponent: () => import('./components/admin/requirements/requirements.component').then(m => m.RequirementsComponent) },
       { path: 'chatbots', loadComponent: () => import('./components/admin/chatbot-config/chatbot-config.component').then(m => m.ChatbotConfigComponent) },
-      { path: 'team', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
-      { path: 'metrics', loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'team', data: { tab: 'details' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
+      { path: 'metrics', data: { tab: 'ranking' }, loadComponent: () => import('./components/workspaces/workspaces.component').then(m => m.WorkspacesComponent) },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   },

@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { WorkspaceService } from '../../services/workspace.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { ConfirmModalComponent } from '../shared/confirm-modal/confirm-modal.component';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddWorkspaceMemberRequest,
   ChatQuestionClusterDTO,
@@ -48,6 +48,7 @@ export class WorkspacesComponent implements OnInit {
   private workspaceService = inject(WorkspaceService);
   private chatbotService = inject(ChatbotService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   readonly authService = inject(AuthService);
 
@@ -59,7 +60,7 @@ export class WorkspacesComponent implements OnInit {
   saving = signal(false);
   error = signal<string | null>(null);
   analyticsError = signal<string | null>(null);
-  activeTab = signal<'details' | 'projects' | 'ranking'>('details');
+  activeTab = signal<'details' | 'projects' | 'ranking'>('projects');
 
   joinCodeInput = signal('');
   joinLoading = signal(false);
@@ -136,6 +137,10 @@ export class WorkspacesComponent implements OnInit {
   isMemberOnly = computed(() => this.userWorkspaceRole() === 'MEMBER');
 
   ngOnInit(): void {
+    const tab = this.route.snapshot.data['tab'];
+    if (tab === 'details' || tab === 'projects' || tab === 'ranking') {
+      this.activeTab.set(tab);
+    }
     this.loadWorkspaces();
   }
 
@@ -147,7 +152,12 @@ export class WorkspacesComponent implements OnInit {
       next: (workspaces) => {
         this.loading.set(false);
         if (workspaces.length > 0) {
-          this.selectWorkspace(this.selectedWorkspaceId() ?? workspaces[0].id);
+          const preferredId = this.route.snapshot.paramMap.get('workspaceId');
+          const targetId =
+            preferredId && workspaces.some(workspace => workspace.id === preferredId)
+              ? preferredId
+              : this.selectedWorkspaceId() ?? workspaces[0].id;
+          this.selectWorkspace(targetId);
         }
       },
       error: (err) => {
