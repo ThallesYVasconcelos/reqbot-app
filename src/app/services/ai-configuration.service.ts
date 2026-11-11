@@ -24,10 +24,20 @@ export class AiConfigurationService {
   }
 
   models(workspaceId: string): Observable<AiModelOption[]> {
-    return this.api.get<AiModelOption[] | string[] | { models: AiModelOption[] | string[] }>(
+    return this.api.get<AiModelOption[] | string[] | { models?: AiModelOption[] | string[]; [provider: string]: unknown }>(
       `/api/workspaces/${workspaceId}/ai-configuration/models`
     ).pipe(map(response => {
-      const models = Array.isArray(response) ? response : response.models ?? [];
+      let models: Array<AiModelOption | string> = [];
+      if (Array.isArray(response)) {
+        models = response;
+      } else if (Array.isArray(response.models)) {
+        models = response.models;
+      } else {
+        for (const [provider, providerModels] of Object.entries(response)) {
+          if (!Array.isArray(providerModels)) continue;
+          models.push(...providerModels.map(model => typeof model === 'string' ? { id: model, name: model, provider: provider as AiModelOption['provider'] } : { ...model, provider: (model as AiModelOption).provider || provider as AiModelOption['provider'] }));
+        }
+      }
       return models.map(model => {
         if (typeof model === 'string') return { id: model, name: model };
         const raw = model as AiModelOption & { model?: string; modelId?: string; displayName?: string; modelName?: string; label?: string };

@@ -29,6 +29,7 @@ export class UserSettingsComponent implements OnInit {
   });
   aiConfiguration = signal<AiConfiguration | null>(null);
   aiModels = signal<AiModelOption[]>([]);
+  visibleAiModels = computed(() => this.aiModels().filter(model => !model.provider || model.provider === this.aiProvider()));
   aiProvider = signal<AiProvider>('GEMINI');
   aiModel = signal('');
   aiApiKey = signal('');

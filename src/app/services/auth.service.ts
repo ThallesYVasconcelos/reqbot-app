@@ -105,8 +105,8 @@ export class AuthService {
     const payload = this.readJwtPayload(token);
     const profile = response?.user || response?.data?.user || response?.profile || response?.data?.profile || {};
     const email = response?.email || response?.data?.email || profile.email || payload?.email || payload?.sub || 'user@test.local';
-    const name = response?.name || response?.data?.name || response?.userName || profile.name || profile.fullName || payload?.name || payload?.given_name || 'User';
-    const pictureUrl = response?.pictureUrl || response?.picture || response?.data?.pictureUrl || response?.data?.picture || profile.pictureUrl || profile.picture || payload?.picture || null;
+    const name = response?.name || response?.data?.name || response?.userName || response?.username || profile.name || profile.fullName || profile.displayName || profile.givenName || payload?.name || payload?.given_name || 'User';
+    const pictureUrl = response?.pictureUrl || response?.picture || response?.photoUrl || response?.imageUrl || response?.avatarUrl || response?.data?.pictureUrl || response?.data?.picture || response?.data?.photoUrl || profile.pictureUrl || profile.picture || profile.photoUrl || profile.imageUrl || profile.avatarUrl || payload?.picture || null;
 
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('token', token);
@@ -135,7 +135,8 @@ export class AuthService {
     try {
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) return null;
-      return JSON.parse(atob(tokenParts[1]));
+      const encoded = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(encoded.padEnd(encoded.length + (4 - encoded.length % 4) % 4, '=')));
     } catch {
       return null;
     }
@@ -156,7 +157,15 @@ export class AuthService {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        this.currentUser.set(JSON.parse(userStr));
+        const stored = JSON.parse(userStr) as User;
+        const payload = this.readJwtPayload(localStorage.getItem('token') || '');
+        const updated = {
+          ...stored,
+          name: stored.name && stored.name !== 'User' ? stored.name : payload?.name || payload?.given_name || stored.name,
+          pictureUrl: stored.pictureUrl || payload?.picture || payload?.pictureUrl || null
+        };
+        this.currentUser.set(updated);
+        localStorage.setItem('user', JSON.stringify(updated));
       } catch {}
     }
   }

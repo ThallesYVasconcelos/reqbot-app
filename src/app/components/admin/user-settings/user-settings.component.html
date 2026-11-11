@@ -15,8 +15,8 @@
     <h2 class="text-sm font-semibold text-slate-900">Aparência</h2>
     <p class="mt-1 text-sm text-slate-600">Escolha como o ReqBot aparece para você.</p>
     <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tema da aplicação">
-      <button type="button" (click)="themeService.set('light')" [attr.aria-pressed]="themeService.theme() === 'light'" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 aria-pressed:border-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">Tema claro</button>
-      <button type="button" (click)="themeService.set('dark')" [attr.aria-pressed]="themeService.theme() === 'dark'" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 aria-pressed:border-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">Tema escuro</button>
+      <button type="button" (click)="themeService.set('light')" [attr.aria-pressed]="themeService.theme() === 'light'" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700" [class.border-blue-600]="themeService.theme() === 'light'" [class.bg-blue-600]="themeService.theme() === 'light'" [class.text-white]="themeService.theme() === 'light'">Tema claro</button>
+      <button type="button" (click)="themeService.set('dark')" [attr.aria-pressed]="themeService.theme() === 'dark'" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700" [class.border-blue-600]="themeService.theme() === 'dark'" [class.bg-blue-600]="themeService.theme() === 'dark'" [class.text-white]="themeService.theme() === 'dark'">Tema escuro</button>
     </div>
   </section>
   @if (isOwner()) {
@@ -42,7 +42,7 @@
           <label class="text-sm font-medium text-slate-700">Modelo
             <select [ngModel]="aiModel()" (ngModelChange)="aiModel.set($event)" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base font-normal text-slate-900 sm:text-sm">
               <option value="">Selecione um modelo</option>
-              @for (model of aiModels(); track model.id) { <option [value]="model.id">{{ model.name || model.id }}</option> }
+              @for (model of visibleAiModels(); track model.id) { <option [value]="model.id">{{ model.name || model.id }}</option> }
             </select>
           </label>
         </div>
