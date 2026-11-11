@@ -143,6 +143,12 @@ export class WorkspacesComponent implements OnInit {
     if (tab === 'details' || tab === 'projects' || tab === 'ranking') {
       this.activeTab.set(tab);
     }
+    if (tab === 'projects' && isPlatformBrowser(this.platformId)) {
+      const storedTab = localStorage.getItem('reqbot-last-workspace-tab');
+      if (storedTab === 'details' || storedTab === 'projects' || storedTab === 'ranking') {
+        this.activeTab.set(storedTab);
+      }
+    }
     this.loadWorkspaces();
   }
 
@@ -520,6 +526,7 @@ export class WorkspacesComponent implements OnInit {
 
   setActiveTab(tab: 'details' | 'projects' | 'ranking'): void {
     this.activeTab.set(tab);
+    if (isPlatformBrowser(this.platformId)) localStorage.setItem('reqbot-last-workspace-tab', tab);
 
     if (tab === 'projects') {
       this.loadWorkspaceProjects();

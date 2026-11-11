@@ -38,3 +38,15 @@
 :host-context(html.dark) .chatbot-shell input::placeholder {
   color: #94a3b8;
 }
+
+:host-context(html.dark) .chatbot-shell .hover\:bg-slate-100:hover {
+  background-color: #334155;
+}
+
+:host-context(html.dark) .chatbot-shell .bg-blue-50 {
+  background-color: #1e3a8a;
+}
+
+:host-context(html.dark) .chatbot-shell .text-blue-700 {
+  color: #bfdbfe;
+}

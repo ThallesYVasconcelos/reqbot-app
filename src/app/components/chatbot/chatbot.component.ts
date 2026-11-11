@@ -38,6 +38,7 @@ export class ChatbotComponent implements OnInit {
   joining = signal(false);
   bootLoading = signal(false);
   error = signal<string | null>(null);
+  showMenu = signal(false);
 
   activeChatbot = computed(() => this.chatbots().find(bot => bot.id === this.activeChatbotId()) ?? null);
   chatbotUnavailableMessage = computed(() => {
@@ -51,6 +52,10 @@ export class ChatbotComponent implements OnInit {
   ngOnInit(): void {
     const routeChatbotId = this.route.snapshot.paramMap.get('chatbotId');
     this.loadMyChatbots(routeChatbotId ?? undefined);
+  }
+
+  toggleMenu(): void {
+    this.showMenu.update(open => !open);
   }
 
   loadMyChatbots(preferredId?: string): void {

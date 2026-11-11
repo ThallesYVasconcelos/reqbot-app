@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 text-slate-900">
+<div class="h-dvh overflow-hidden bg-slate-50 text-slate-900">
   <aside
     class="fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-white/10 bg-slate-950 text-white shadow-lg transition-transform duration-300 ease-out"
     [class.-translate-x-full]="!showMenu()"
@@ -69,7 +69,7 @@
     <div class="fixed inset-0 z-30 bg-black/40 transition-opacity duration-200 lg:hidden" (click)="toggleMenu()" role="presentation"></div>
   }
 
-  <div class="min-h-screen transition-[margin] duration-300 ease-out" [class.lg:ml-64]="showMenu()">
+  <div class="flex h-full min-h-0 flex-col transition-[margin] duration-300 ease-out" [class.lg:ml-64]="showMenu()">
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div class="flex min-w-0 items-center gap-3">
@@ -93,7 +93,7 @@
       </div>
     </header>
 
-    <main class="mx-auto w-full max-w-7xl p-4 sm:p-6">
+    <main class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
       <router-outlet></router-outlet>
     </main>
   </div>
