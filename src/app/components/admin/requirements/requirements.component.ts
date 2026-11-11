@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +12,7 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal.
 @Component({
   selector: 'app-requirements',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule, FormsModule, ConfirmModalComponent],
   templateUrl: './requirements.component.html',
   styleUrl: './requirements.component.css'

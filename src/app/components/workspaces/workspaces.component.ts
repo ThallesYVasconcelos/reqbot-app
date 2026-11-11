@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -40,6 +40,7 @@ type ChatbotRankingResult = {
 @Component({
   selector: 'app-workspaces',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, RouterModule, ConfirmModalComponent],
   templateUrl: './workspaces.component.html',
   styleUrl: './workspaces.component.css'

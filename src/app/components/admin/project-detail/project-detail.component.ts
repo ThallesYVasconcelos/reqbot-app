@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { RequirementSetService } from '../../../services/requirement-set.service';
@@ -8,6 +8,7 @@ import { Requirement } from '../../../models/requirement.model';
 @Component({
   selector: 'app-project-detail',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.css'

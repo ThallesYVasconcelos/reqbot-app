@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -10,6 +10,7 @@ declare var google: any;
 @Component({
   selector: 'app-login-admin',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule],
   templateUrl: './login-admin.component.html',
   styleUrl: './login-admin.component.css'
